@@ -7,12 +7,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getInventory, fetchInventoryClient, type Appliance } from "../lib/inventory";
+import { APPLIANCES_INVENTORY } from "../data/products";
+import { fetchInventoryClient, type Appliance } from "../lib/inventory";
 
-const ProductsContext = createContext<Appliance[]>(getInventory());
+const ProductsContext = createContext<Appliance[]>(APPLIANCES_INVENTORY);
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
-  const [inventory, setInventory] = useState<Appliance[]>(getInventory());
+  const [inventory, setInventory] = useState<Appliance[]>(APPLIANCES_INVENTORY);
 
   useEffect(() => {
     fetchInventoryClient().then(setInventory);

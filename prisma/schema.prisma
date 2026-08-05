@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BrandTier {
+  signature
+  partner
+}
+
+enum StockStatus {
+  in_stock
+  low_stock
+  out_of_stock
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  name      String
+  tier      BrandTier
+  origin    String
+  sortOrder Int       @default(0) @map("sort_order")
+  products  Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  slug          String        @unique
+  label         String
+  navLabel      String        @map("nav_label")
+  description   String
+  sortOrder     Int           @default(0) @map("sort_order")
+  subcategories Subcategory[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id         Int       @id @default(autoincrement())
+  categoryId Int       @map("category_id")
+  slug       String
+  label      String
+  sortOrder  Int       @default(0) @map("sort_order")
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@unique([categoryId, slug])
+  @@map("subcategories")
+}
+
+model Product {
+  id              Int                @id @default(autoincrement())
+  slug            String             @unique
+  name            String
+  brandId         Int                @map("brand_id")
+  subcategoryId   Int                @map("subcategory_id")
+  priceKes        Int                @map("price_kes")
+  stockStatus     StockStatus        @default(in_stock) @map("stock_status")
+  isPublished     Boolean            @default(true) @map("is_published")
+  specs           String
+  description     String
+  highlights      Json
+  primaryPhotoId  String             @map("primary_photo_id")
+  galleryPhotoIds Json               @map("gallery_photo_ids")
+  brand           Brand              @relation(fields: [brandId], references: [id])
+  subcategory     Subcategory        @relation(fields: [subcategoryId], references: [id])
+  featuredTop     FeaturedHomeSlot[] @relation("FeaturedTop")
+  featuredBottom  FeaturedHomeSlot[] @relation("FeaturedBottom")
+
+  @@index([brandId])
+  @@index([subcategoryId])
+  @@index([isPublished])
+  @@map("products")
+}
+
+model FeaturedHomeSlot {
+  id              Int      @id @default(autoincrement())
+  columnIndex     Int      @unique @map("column_index")
+  topProductId    Int      @map("top_product_id")
+  bottomProductId Int?     @map("bottom_product_id")
+  topProduct      Product  @relation("FeaturedTop", fields: [topProductId], references: [id])
+  bottomProduct   Product? @relation("FeaturedBottom", fields: [bottomProductId], references: [id])
+
+  @@map("featured_home_slots")
+}

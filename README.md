@@ -2,6 +2,18 @@
 
 Next.js storefront for kitchen appliances and gym equipment — East & Central Africa.
 
+## Database (Neon + Prisma)
+
+See **[docs/DATABASE_SETUP.md](./docs/DATABASE_SETUP.md)** for full setup.
+
+Quick start after adding `DATABASE_URL` to `.env.local`:
+
+```bash
+npm run db:push
+npm run db:seed
+npm run dev
+```
+
 ## Local development
 
 ```bash
