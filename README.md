@@ -39,8 +39,8 @@ Set `NEXT_PUBLIC_DEMO_MODE=true` in `.env.local` to match staging behaviour (sim
 ### Staging limitations
 
 - **Cart** — stored in the browser (`localStorage`); normal for storefronts without accounts.
-- **Orders** — `/api/orders` writes to a local file in dev. On Vercel the filesystem is ephemeral, so orders may not persist across deploys. Demo banners explain this when `NEXT_PUBLIC_DEMO_MODE=true`.
-- **Products** — served from static data via `/api/products` until a database is added.
+- **Orders** — saved to Postgres via `/api/orders` when `DATABASE_URL` is set. Payment is arranged manually until M-Pesa/card is integrated.
+- **Products** — served from Postgres via `/api/products` (static fallback if DB unavailable).
 
 ### First-time Git push
 

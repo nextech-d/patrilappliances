@@ -1,49 +1,6 @@
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
 import type { CartItem } from "../../context/CartContext";
-
-// Path to orders storage
-const ordersFilePath = path.join(process.cwd(), "app", "data", "orders.json");
-
-type OrderPayload = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  items: CartItem[];
-  total: number;
-  paymentMethod?: "card" | "mpesa";
-  cardName?: string;
-  cardNumber?: string;
-  mpesaPhone?: string;
-};
-
-type StoredOrder = {
-  trackingId: string;
-  orderDate: string;
-  customer: Pick<OrderPayload, "name" | "email" | "phone" | "address" | "city">;
-  paymentSimulated: {
-    method: string;
-    cardHolder: string;
-    cardNumberLast4: string;
-    mpesaPhone?: string;
-  };
-  items: CartItem[];
-  total: number;
-  status: string;
-};
-
-async function readOrders(): Promise<StoredOrder[]> {
-  try {
-    const fileData = await fs.readFile(ordersFilePath, "utf-8");
-    const parsed = JSON.parse(fileData) as unknown;
-    return Array.isArray(parsed) ? (parsed as StoredOrder[]) : [];
-  } catch {
-    return [];
-  }
-}
+import { createOrder, getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -51,49 +8,35 @@ export async function GET(request: Request) {
 
   if (!trackingId) {
     return NextResponse.json(
-      { success: false, message: "Tracking ID is required." },
+      { success: false, message: "Order reference is required." },
       { status: 400 }
     );
   }
 
-  const orders = await readOrders();
-  const order = orders.find((o) => o.trackingId.toUpperCase() === trackingId);
+  const order = await getOrderByTrackingId(trackingId);
 
   if (!order) {
     return NextResponse.json(
-      { success: false, message: "No order found with that tracking ID." },
+      { success: false, message: "No order found with that reference." },
       { status: 404 }
     );
   }
 
-  return NextResponse.json({
-    success: true,
-    order: {
-      trackingId: order.trackingId,
-      orderDate: order.orderDate,
-      status: order.status,
-      total: order.total,
-      customer: {
-        name: order.customer.name,
-        city: order.customer.city,
-      },
-      items: order.items,
-    },
-  });
+  return NextResponse.json({ success: true, order });
 }
 
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as OrderPayload;
-    const { name, email, phone, address, city, items, total, paymentMethod, cardName, cardNumber, mpesaPhone } = payload;
+    const { name, email, phone, address, city, items, total } = payload;
 
-    // Validate parameters
-    if (!name || !email || !phone || !address || !city) {
+    if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !city?.trim()) {
       return NextResponse.json(
         { success: false, message: "Delivery information is required." },
         { status: 400 }
       );
     }
+
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { success: false, message: "Your cart is empty." },
@@ -101,45 +44,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate unique Tracking & Reference ID
-    const trackingId = "PTL-" + Math.floor(100000 + Math.random() * 900000);
-    const orderDate = new Date().toISOString();
+    const validItems = items.filter(
+      (item): item is CartItem =>
+        typeof item.id === "number" &&
+        typeof item.name === "string" &&
+        typeof item.price === "number" &&
+        typeof item.qty === "number" &&
+        item.qty > 0
+    );
 
-    const newOrder: StoredOrder = {
-      trackingId,
-      orderDate,
-      customer: { name, email, phone, address, city },
-      paymentSimulated: {
-        method: paymentMethod ?? "card",
-        cardHolder: paymentMethod === "mpesa" ? "M-Pesa" : (cardName || "Not provided"),
-        cardNumberLast4: paymentMethod === "mpesa" ? "M-Pesa" : (cardNumber ? cardNumber.slice(-4) : "••••"),
-        mpesaPhone: paymentMethod === "mpesa" ? mpesaPhone : undefined,
-      },
-      items,
-      total,
-      status: "Confirmed — preparing for delivery",
-    };
+    if (validItems.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "Your cart items are invalid." },
+        { status: 400 }
+      );
+    }
 
-    // Load existing orders if any
-    let ordersList = await readOrders();
-
-    ordersList.push(newOrder);
-
-    // Save orders back to the file system
-    await fs.writeFile(ordersFilePath, JSON.stringify(ordersList, null, 2), "utf-8");
+    const order = await createOrder({
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      city: city.trim(),
+      items: validItems,
+      total: typeof total === "number" ? total : 0,
+    });
 
     return NextResponse.json({
       success: true,
       message: "Order placed successfully.",
-      trackingId,
-      order: newOrder,
+      trackingId: order.trackingId,
+      order,
     });
   } catch (error: unknown) {
     console.error("Order processing failure:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
+    const status = message.includes("DATABASE_URL") ? 503 : 500;
     return NextResponse.json(
-      { success: false, message: "Internal server processing failed.", error: message },
-      { status: 500 }
+      { success: false, message: "Unable to place your order. Please try again.", error: message },
+      { status }
     );
   }
 }

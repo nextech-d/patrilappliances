@@ -1,6 +1,6 @@
 # Database setup (Neon + Prisma)
 
-Day 1 wires the **product catalog** to PostgreSQL. Orders and payments are not in the database yet.
+Day 1 wires the **product catalog** to PostgreSQL. Day 2 adds **order persistence** — checkout saves to Postgres without online payments or order-tracking UI yet.
 
 ## 1. Create Neon database
 
@@ -71,6 +71,18 @@ Or use Neon's SQL editor — tables must exist before the live site reads from D
 | `subcategories` | cardio, ovens-ranges, … |
 | `products` | Full catalog with prices, photos, highlights |
 | `featured_home_slots` | Homepage 4-column layout |
+| `orders` | Customer checkout orders |
+| `order_items` | Line items per order |
+
+## Orders (Day 2)
+
+After pulling Day 2 changes, create the new tables:
+
+```bash
+npm run db:push
+```
+
+Checkout POSTs to `/api/orders` and saves delivery details + cart items. Payment is arranged manually (WhatsApp/phone) until payments are integrated.
 
 ## Fallback
 

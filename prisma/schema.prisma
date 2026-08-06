@@ -72,6 +72,7 @@ model Product {
   subcategory     Subcategory        @relation(fields: [subcategoryId], references: [id])
   featuredTop     FeaturedHomeSlot[] @relation("FeaturedTop")
   featuredBottom  FeaturedHomeSlot[] @relation("FeaturedBottom")
+  orderItems      OrderItem[]
 
   @@index([brandId])
   @@index([subcategoryId])
@@ -88,4 +89,45 @@ model FeaturedHomeSlot {
   bottomProduct   Product? @relation("FeaturedBottom", fields: [bottomProductId], references: [id])
 
   @@map("featured_home_slots")
+}
+
+enum OrderStatus {
+  confirmed
+  preparing
+  shipped
+  delivered
+  cancelled
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  trackingId      String      @unique @map("tracking_id")
+  status          OrderStatus @default(confirmed)
+  customerName    String      @map("customer_name")
+  customerEmail   String      @map("customer_email")
+  customerPhone   String      @map("customer_phone")
+  deliveryAddress String      @map("delivery_address")
+  deliveryCity    String      @map("delivery_city")
+  totalKes        Int         @map("total_kes")
+  orderDate       DateTime    @default(now()) @map("order_date")
+  items           OrderItem[]
+
+  @@index([trackingId])
+  @@index([orderDate])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int?    @map("product_id")
+  name      String
+  priceKes  Int     @map("price_kes")
+  quantity  Int
+  imageUrl  String  @map("image_url")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("order_items")
 }
