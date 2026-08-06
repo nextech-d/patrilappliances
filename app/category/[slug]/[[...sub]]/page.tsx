@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { getSubcategory } from "../../../data/categories";
-import { getAllCategories, getCategoryBySlugFromDb } from "../../../lib/categories.server";
+import { ALL_CATEGORIES, getSubcategory } from "../../../data/categories";
+import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
 
 type Props = {
@@ -50,10 +50,9 @@ export default async function CategoryPage({ params }: Props) {
 }
 
 export async function generateStaticParams() {
-  const categories = await getAllCategories();
   const paths: { slug: string; sub?: string[] }[] = [];
 
-  for (const cat of categories) {
+  for (const cat of ALL_CATEGORIES) {
     paths.push({ slug: cat.slug });
     for (const sub of cat.subcategories) {
       paths.push({ slug: cat.slug, sub: [sub.slug] });

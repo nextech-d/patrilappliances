@@ -298,12 +298,17 @@ export async function listOrders(): Promise<AdminOrder[]> {
   const prisma = getPrisma();
   if (!prisma) return [];
 
-  const orders = await prisma.order.findMany({
-    include: { items: true },
-    orderBy: { orderDate: "desc" },
-  });
+  try {
+    const orders = await prisma.order.findMany({
+      include: { items: true },
+      orderBy: { orderDate: "desc" },
+    });
 
-  return orders.map(mapOrderToAdmin);
+    return orders.map(mapOrderToAdmin);
+  } catch (error) {
+    console.error("Failed to load orders from database:", error);
+    return [];
+  }
 }
 
 export async function updateOrder(

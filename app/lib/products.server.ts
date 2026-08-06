@@ -119,55 +119,77 @@ export async function listProductsForAdmin(): Promise<AdminProductListItem[]> {
   const prisma = getPrisma();
   if (!prisma) return [];
 
-  const products = await prisma.product.findMany({
-    include: { brand: true },
-    orderBy: { id: "asc" },
-  });
+  try {
+    const products = await prisma.product.findMany({
+      include: { brand: true },
+      orderBy: { id: "asc" },
+    });
 
-  return products.map((product) => ({
-    id: product.id,
-    name: product.name,
-    brand: product.brand.name,
-    priceKes: product.priceKes,
-    stockStatus: product.stockStatus,
-    isPublished: product.isPublished,
-  }));
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      brand: product.brand.name,
+      priceKes: product.priceKes,
+      stockStatus: product.stockStatus,
+      isPublished: product.isPublished,
+    }));
+  } catch (error) {
+    console.error("Failed to load admin products from database:", error);
+    return [];
+  }
 }
 
 export async function getProductForAdmin(id: number): Promise<AdminProductDetail | null> {
   const prisma = getPrisma();
   if (!prisma) return null;
 
-  const product = await prisma.product.findUnique({
-    where: { id },
-    include: { brand: true, subcategory: { include: { category: true } } },
-  });
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: { brand: true, subcategory: { include: { category: true } } },
+    });
 
-  return product ? mapDetail(product) : null;
+    return product ? mapDetail(product) : null;
+  } catch (error) {
+    console.error("Failed to load product from database:", error);
+    return null;
+  }
 }
 
 export async function listBrandOptions(): Promise<BrandOption[]> {
   const prisma = getPrisma();
   if (!prisma) return [];
-  return prisma.brand.findMany({
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+
+  try {
+    return await prisma.brand.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    });
+  } catch (error) {
+    console.error("Failed to load brand options from database:", error);
+    return [];
+  }
 }
 
 export async function listSubcategoryOptions(): Promise<SubcategoryOption[]> {
   const prisma = getPrisma();
   if (!prisma) return [];
-  const rows = await prisma.subcategory.findMany({
-    include: { category: true },
-    orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
-  });
-  return rows.map((row) => ({
-    id: row.id,
-    label: row.label,
-    slug: row.slug,
-    categoryLabel: row.category.label,
-  }));
+
+  try {
+    const rows = await prisma.subcategory.findMany({
+      include: { category: true },
+      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      label: row.label,
+      slug: row.slug,
+      categoryLabel: row.category.label,
+    }));
+  } catch (error) {
+    console.error("Failed to load subcategory options from database:", error);
+    return [];
+  }
 }
 
 export async function createProductForAdmin(input: ProductFormInput): Promise<AdminProductDetail> {
