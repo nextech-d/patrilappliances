@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { getCategoryBySlug, getSubcategory } from "../../../data/categories";
+import { getSubcategory } from "../../../data/categories";
+import { getAllCategories, getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, sub } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlugFromDb(slug);
   if (!category) {
     return buildPageMetadata({
       title: "Category Not Found",
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const subSlug = sub?.[0];
-  const subcategory = getSubcategory(slug, subSlug);
+  const subcategory = getSubcategory(slug, subSlug, category);
 
   if (subcategory) {
     return buildPageMetadata({
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug, sub } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlugFromDb(slug);
 
   if (!category) notFound();
 
@@ -49,10 +50,10 @@ export default async function CategoryPage({ params }: Props) {
 }
 
 export async function generateStaticParams() {
-  const { ALL_CATEGORIES } = await import("../../../data/categories");
+  const categories = await getAllCategories();
   const paths: { slug: string; sub?: string[] }[] = [];
 
-  for (const cat of ALL_CATEGORIES) {
+  for (const cat of categories) {
     paths.push({ slug: cat.slug });
     for (const sub of cat.subcategories) {
       paths.push({ slug: cat.slug, sub: [sub.slug] });

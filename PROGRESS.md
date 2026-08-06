@@ -26,7 +26,9 @@ npm run dev:all
 |--------|--------|-------|
 | Storefront | ✅ Live | Guest-first header (no Sign in); cart + checkout |
 | API (Hono) | ✅ Local | Orders, products, catalog, uploads, JWT admin auth |
-| Admin app | ✅ Local | Dark UI — dashboard, orders, products, brands, categories |
+| Admin app | ✅ Local | Dark UI — sidebar grouped Commerce / Catalog |
+| Categories admin | ✅ | Search, stats, delete, edit subcategories panel |
+| Store categories | ✅ | Nav, footer, category pages read from DB |
 | Products admin | ✅ | Two-column form, image uploads, meta fields |
 | Orders admin | ✅ | Filters, detail, CSV, payment/status rules |
 | Checkout rules | ✅ | Server pricing; blocks out-of-stock & low-stock |

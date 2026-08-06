@@ -9,6 +9,7 @@ import CartToast from "./components/CartToast";
 import SiteJsonLd from "./components/SiteJsonLd";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
+import { CategoriesProvider } from "./context/CategoriesContext";
 import { rootMetadata } from "./lib/seo";
 
 const geistSans = Geist({
@@ -34,11 +35,13 @@ export default function RootLayout({
         <SiteJsonLd />
         <CartProvider>
           <ProductsProvider>
-            <Header />
-            <CartDrawer />
-            <CartToast />
-            <main className="flex-grow">{children}</main>
-            <Footer />
+            <CategoriesProvider>
+              <Header />
+              <CartDrawer />
+              <CartToast />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </CategoriesProvider>
           </ProductsProvider>
         </CartProvider>
         <Analytics />

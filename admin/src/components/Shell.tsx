@@ -11,13 +11,16 @@ import {
 } from "lucide-react";
 import { clearToken } from "../lib/api";
 
-const nav = [
+const commerceNav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/orders", label: "Orders", icon: ShoppingBag },
+] as const;
+
+const catalogNav = [
   { to: "/products", label: "Products", icon: Package },
   { to: "/brands", label: "Brands", icon: Tag },
   { to: "/categories", label: "Categories", icon: Layers },
-];
+] as const;
 
 export default function Shell() {
   const navigate = useNavigate();
@@ -42,27 +45,55 @@ export default function Shell() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-0.5 p-3">
-          <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
-            Commerce
-          </p>
-          {nav.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
-                  isActive
-                    ? "bg-[#00e599]/10 text-[#00e599]"
-                    : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
-                }`
-              }
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {label}
-            </NavLink>
-          ))}
+        <nav className="flex-1 space-y-4 p-3">
+          <div>
+            <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+              Commerce
+            </p>
+            <div className="space-y-0.5">
+              {commerceNav.map(({ to, label, icon: Icon, ...rest }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={"end" in rest ? rest.end : false}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-[#00e599]/10 text-[#00e599]"
+                        : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
+                    }`
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+              Catalog
+            </p>
+            <div className="space-y-0.5">
+              {catalogNav.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-[#00e599]/10 text-[#00e599]"
+                        : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
+                    }`
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         </nav>
 
         <div className="border-t border-[#262626] p-3 space-y-1">

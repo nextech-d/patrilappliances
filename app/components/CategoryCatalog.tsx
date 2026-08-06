@@ -21,7 +21,7 @@ type CategoryCatalogProps = {
 export default function CategoryCatalog({ category, subSlug }: CategoryCatalogProps) {
   const { handleAddToCart, addedIds } = useAddToCart();
   const inventory = useInventory();
-  const subcategoryMeta = subSlug ? getSubcategory(category.slug, subSlug) : undefined;
+  const subcategoryMeta = subSlug ? getSubcategory(category.slug, subSlug, category) : undefined;
   const [sortBy, setSortBy] = useState<string>("default");
 
   const categoryProducts = useMemo(() => {
@@ -48,7 +48,7 @@ export default function CategoryCatalog({ category, subSlug }: CategoryCatalogPr
     return result;
   }, [categoryProducts, subSlug, sortBy]);
 
-  const activeSubLabel = subSlug ? getSubcategoryLabel(category.slug, subSlug) : null;
+  const activeSubLabel = subSlug ? getSubcategoryLabel(category.slug, subSlug, category) : null;
 
   if (subSlug && !subcategoryMeta) {
     return (

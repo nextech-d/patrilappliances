@@ -133,6 +133,7 @@ export type ProductListFilters = {
   stockStatus?: StockStatus;
   published?: boolean;
   brandId?: number;
+  subcategoryId?: number;
 };
 
 export type ProductListResult = {
@@ -170,6 +171,7 @@ export async function listProductsFiltered(
     ...(filters.stockStatus ? { stockStatus: filters.stockStatus } : {}),
     ...(filters.published !== undefined ? { isPublished: filters.published } : {}),
     ...(filters.brandId ? { brandId: filters.brandId } : {}),
+    ...(filters.subcategoryId ? { subcategoryId: filters.subcategoryId } : {}),
     ...(q
       ? {
           OR: [

@@ -10,6 +10,7 @@ import { adminProductsRoute } from "./routes/admin/products.js";
 import { adminCatalogRoute } from "./routes/admin/catalog.js";
 import { adminDashboardRoute } from "./routes/admin/dashboard.js";
 import { adminUploadsRoute } from "./routes/admin/uploads.js";
+import { catalogRoute } from "./routes/catalog.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
 
 loadEnv({ path: ".env.local" });
@@ -46,6 +47,7 @@ app.get("/products", async (c) => {
 });
 
 app.route("/orders", ordersRoute);
+app.route("/catalog", catalogRoute);
 app.route("/auth", authRoute);
 app.route("/account", accountRoute);
 

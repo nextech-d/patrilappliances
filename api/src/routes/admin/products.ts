@@ -82,6 +82,7 @@ adminProductsRoute.get("/", async (c) => {
   const stock = c.req.query("stock") as StockStatus | undefined;
   const published = c.req.query("published");
   const brandId = c.req.query("brandId");
+  const subcategoryId = c.req.query("subcategoryId");
   const q = c.req.query("q");
 
   const validStock: StockStatus[] = ["in_stock", "low_stock", "out_of_stock"];
@@ -91,6 +92,7 @@ adminProductsRoute.get("/", async (c) => {
     published:
       published === "true" ? true : published === "false" ? false : undefined,
     brandId: brandId ? Number(brandId) : undefined,
+    subcategoryId: subcategoryId ? Number(subcategoryId) : undefined,
     q: q ?? undefined,
   });
 

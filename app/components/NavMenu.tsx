@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { NAV_CATEGORIES, categoryHref, subcategoryHref } from "../data/categories";
+import { categoryHref, subcategoryHref } from "../data/categories";
+import { useNavCategories } from "../context/CategoriesContext";
 
 const linkClass =
   "block px-4 py-2 text-xs font-semibold text-black transition hover:bg-neutral-100 hover:text-black";
@@ -53,6 +54,7 @@ function NavDropdown({
 
 export default function NavMenu() {
   const pathname = usePathname();
+  const navCategories = useNavCategories();
 
   return (
     <nav className="hidden items-center space-x-1 text-xs font-bold tracking-wider lg:flex">
@@ -65,7 +67,7 @@ export default function NavMenu() {
         Home
       </Link>
 
-      {NAV_CATEGORIES.map((cat) => {
+      {navCategories.map((cat) => {
         const catActive = pathname.startsWith(`/category/${cat.slug}`);
 
         return (

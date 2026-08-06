@@ -9,6 +9,16 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+function searchTerms(q?: string): string[] {
+  return q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? [];
+}
+
+function textMatchesTerms(text: string, terms: string[]): boolean {
+  if (terms.length === 0) return true;
+  const haystack = text.toLowerCase();
+  return terms.every((term) => haystack.includes(term));
+}
+
 export type BrandListItem = {
   id: number;
   name: string;
@@ -199,9 +209,27 @@ export async function getCategoryById(id: number) {
   if (!prisma) return null;
   const category = await prisma.category.findUnique({
     where: { id },
-    include: { _count: { select: { subcategories: true } } },
+    include: {
+      subcategories: {
+        orderBy: { sortOrder: "asc" },
+        include: { _count: { select: { products: true } } },
+      },
+      _count: { select: { subcategories: true } },
+    },
   });
   if (!category) return null;
+
+  const subcategories = category.subcategories.map((sub) => ({
+    id: sub.id,
+    label: sub.label,
+    slug: sub.slug,
+    categoryId: sub.categoryId,
+    sortOrder: sub.sortOrder,
+    productCount: sub._count.products,
+  }));
+
+  const productCount = subcategories.reduce((sum, sub) => sum + sub.productCount, 0);
+
   return {
     id: category.id,
     label: category.label,
@@ -210,6 +238,8 @@ export async function getCategoryById(id: number) {
     description: category.description,
     sortOrder: category.sortOrder,
     subcategoryCount: category._count.subcategories,
+    productCount,
+    subcategories,
   };
 }
 
@@ -235,6 +265,62 @@ export async function getSubcategoryById(id: number) {
   };
 }
 
+export type CategoryListSubcategory = {
+  id: number;
+  label: string;
+  slug: string;
+  categoryId: number;
+  sortOrder: number;
+  productCount: number;
+};
+
+export type CategoryListItem = {
+  id: number;
+  label: string;
+  slug: string;
+  navLabel: string;
+  description: string;
+  sortOrder: number;
+  subcategoryCount: number;
+  productCount: number;
+  subcategories: CategoryListSubcategory[];
+};
+
+export type CategoryListSummary = {
+  totalCategories: number;
+  totalSubcategories: number;
+  filteredCategories: number;
+};
+
+export type StorefrontCategory = {
+  label: string;
+  slug: string;
+  navLabel: string;
+  description: string;
+  subcategories: { label: string; slug: string }[];
+};
+
+export async function listCategoriesForStorefront(): Promise<StorefrontCategory[]> {
+  const prisma = getPrisma();
+  if (!prisma) return [];
+
+  const rows = await prisma.category.findMany({
+    include: { subcategories: { orderBy: { sortOrder: "asc" } } },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  return rows.map((category) => ({
+    label: category.label,
+    slug: category.slug,
+    navLabel: category.navLabel,
+    description: category.description,
+    subcategories: category.subcategories.map((sub) => ({
+      label: sub.label,
+      slug: sub.slug,
+    })),
+  }));
+}
+
 export async function listCategories() {
   const prisma = getPrisma();
   if (!prisma) return [];
@@ -242,6 +328,93 @@ export async function listCategories() {
     include: { subcategories: { orderBy: { sortOrder: "asc" } } },
     orderBy: { sortOrder: "asc" },
   });
+}
+
+export async function listCategoriesFiltered(filters: { q?: string }) {
+  const prisma = getPrisma();
+  if (!prisma) {
+    return {
+      categories: [] as CategoryListItem[],
+      summary: { totalCategories: 0, totalSubcategories: 0, filteredCategories: 0 },
+    };
+  }
+
+  const terms = searchTerms(filters.q);
+
+  const [allCategories, totalCategories, totalSubcategories] = await Promise.all([
+    prisma.category.findMany({
+      include: {
+        subcategories: {
+          orderBy: { sortOrder: "asc" },
+          include: { _count: { select: { products: true } } },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    }),
+    prisma.category.count(),
+    prisma.subcategory.count(),
+  ]);
+
+  const categories = allCategories
+    .map((category) => {
+      const subcategories = category.subcategories.map((sub) => ({
+        id: sub.id,
+        label: sub.label,
+        slug: sub.slug,
+        categoryId: sub.categoryId,
+        sortOrder: sub.sortOrder,
+        productCount: sub._count.products,
+      }));
+
+      const productCount = subcategories.reduce((sum, sub) => sum + sub.productCount, 0);
+
+      return {
+        id: category.id,
+        label: category.label,
+        slug: category.slug,
+        navLabel: category.navLabel,
+        description: category.description,
+        sortOrder: category.sortOrder,
+        subcategoryCount: subcategories.length,
+        productCount,
+        subcategories,
+      };
+    })
+    .map((category) => {
+      if (terms.length === 0) return category;
+
+      const categoryText = [
+        category.label,
+        category.slug,
+        category.navLabel,
+        category.description,
+      ].join(" ");
+      const categoryMatches = textMatchesTerms(categoryText, terms);
+
+      const matchingSubs = category.subcategories.filter((sub) =>
+        textMatchesTerms(`${sub.label} ${sub.slug}`, terms)
+      );
+
+      if (!categoryMatches && matchingSubs.length === 0) return null;
+
+      const visibleSubs = categoryMatches ? category.subcategories : matchingSubs;
+
+      return {
+        ...category,
+        subcategories: visibleSubs,
+        subcategoryCount: visibleSubs.length,
+      };
+    })
+    .filter((category): category is CategoryListItem => category !== null);
+
+  return {
+    categories,
+    summary: {
+      totalCategories,
+      totalSubcategories,
+      filteredCategories: categories.length,
+    } satisfies CategoryListSummary,
+  };
 }
 
 export async function createCategory(input: {
@@ -289,14 +462,27 @@ export async function updateCategory(
   }
 }
 
-export async function deleteCategory(id: number) {
+export async function deleteCategory(
+  id: number
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const prisma = getPrisma();
-  if (!prisma) return false;
+  if (!prisma) return { ok: false, message: "Database unavailable." };
+
+  const productCount = await prisma.product.count({
+    where: { subcategory: { categoryId: id } },
+  });
+  if (productCount > 0) {
+    return {
+      ok: false,
+      message: `Cannot delete: ${productCount} product${productCount === 1 ? "" : "s"} still use subcategories in this category. Reassign them first.`,
+    };
+  }
+
   try {
     await prisma.category.delete({ where: { id } });
-    return true;
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false, message: "Cannot delete category." };
   }
 }
 
@@ -345,14 +531,25 @@ export async function updateSubcategory(
   }
 }
 
-export async function deleteSubcategory(id: number) {
+export async function deleteSubcategory(
+  id: number
+): Promise<{ ok: true } | { ok: false; message: string }> {
   const prisma = getPrisma();
-  if (!prisma) return false;
+  if (!prisma) return { ok: false, message: "Database unavailable." };
+
+  const productCount = await prisma.product.count({ where: { subcategoryId: id } });
+  if (productCount > 0) {
+    return {
+      ok: false,
+      message: `Cannot delete: ${productCount} product${productCount === 1 ? "" : "s"} still use this subcategory. Reassign them first.`,
+    };
+  }
+
   try {
     await prisma.subcategory.delete({ where: { id } });
-    return true;
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false, message: "Cannot delete subcategory." };
   }
 }
 

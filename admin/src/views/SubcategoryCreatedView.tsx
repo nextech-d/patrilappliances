@@ -35,7 +35,6 @@ export default function SubcategoryCreatedView({ entityId }: Props) {
       createAnotherPath="/subcategories/new"
       rows={[
         { label: "ID", value: `#${subcategory.id}`, mono: true },
-        { label: "Slug", value: subcategory.slug, mono: true },
         {
           label: "Parent category",
           value: (
@@ -47,6 +46,8 @@ export default function SubcategoryCreatedView({ entityId }: Props) {
             </Link>
           ),
         },
+        { label: "Label", value: subcategory.label },
+        { label: "Slug", value: subcategory.slug, mono: true },
         { label: "Sort order", value: String(subcategory.sortOrder) },
         { label: "Products", value: String(subcategory.productCount ?? 0) },
       ]}

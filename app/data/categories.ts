@@ -102,15 +102,20 @@ export function getCategorySlug(categoryName: string): string {
 
 export function getSubcategory(
   categorySlug: string,
-  subSlug: string | undefined
+  subSlug: string | undefined,
+  categoryOverride?: Category
 ): SubCategory | undefined {
   if (!subSlug) return undefined;
-  const category = getCategoryBySlug(categorySlug);
+  const category = categoryOverride ?? getCategoryBySlug(categorySlug);
   return category?.subcategories.find((s) => s.slug === subSlug);
 }
 
-export function getSubcategoryLabel(categorySlug: string, subSlug: string): string {
-  return getSubcategory(categorySlug, subSlug)?.label ?? subSlug;
+export function getSubcategoryLabel(
+  categorySlug: string,
+  subSlug: string,
+  categoryOverride?: Category
+): string {
+  return getSubcategory(categorySlug, subSlug, categoryOverride)?.label ?? subSlug;
 }
 
 export function categoryHref(categorySlug: string, subSlug?: string): string {

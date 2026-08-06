@@ -6,7 +6,6 @@ import {
   Tag,
   Users,
   Layers,
-  AlertTriangle,
   TrendingUp,
   RefreshCw,
   Download,
@@ -14,6 +13,8 @@ import {
   Activity,
 } from "lucide-react";
 import { api, exportOrdersCsv, formatKes, getToken } from "../lib/api";
+import CatalogStatCards from "../components/CatalogStatCards";
+import { SectionHeading, StatCard, StatCardSkeleton } from "../components/StatCard";
 
 type OrderStatus = "confirmed" | "preparing" | "shipped" | "delivered" | "cancelled";
 
@@ -23,6 +24,7 @@ type DashboardData = {
     orders: number;
     brands: number;
     categories: number;
+    subcategories: number;
     customers: number;
     pendingPayments: number;
     lowStock: number;
@@ -44,61 +46,14 @@ type DashboardData = {
     orderDate: string;
   }>;
   ordersLast7Days: Array<{ date: string; label: string; count: number; revenue: number }>;
+  catalogCategories: Array<{
+    id: number;
+    label: string;
+    slug: string;
+    subcategoryCount: number;
+    productCount: number;
+  }>;
 };
-
-function StatCardSkeleton() {
-  return (
-    <div className="animate-pulse rounded-xl border border-[#262626] bg-[#111111] p-5">
-      <div className="h-3 w-20 rounded bg-[#262626]" />
-      <div className="mt-3 h-8 w-16 rounded bg-[#262626]" />
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  href,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  href: string;
-  accent?: "green" | "amber" | "red";
-}) {
-  const accentClass =
-    accent === "amber"
-      ? "text-amber-400"
-      : accent === "red"
-        ? "text-red-400"
-        : accent === "green"
-          ? "text-[#00e599]"
-          : "text-white";
-
-  return (
-    <Link
-      to={href}
-      className="rounded-xl border border-[#262626] bg-[#111111] p-5 transition hover:border-[#333]"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-            {label}
-          </p>
-          <p className={`mt-2 text-2xl font-bold tabular-nums ${accentClass}`}>{value}</p>
-          {sub && <p className="mt-1 text-[10px] text-neutral-600">{sub}</p>}
-        </div>
-        <div className="shrink-0 rounded-lg bg-[#1a1a1a] p-2 text-neutral-400">
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 function OrdersChart({ days }: { days: DashboardData["ordersLast7Days"] }) {
   const max = Math.max(...days.map((d) => d.count), 1);
@@ -217,67 +172,43 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-        {loading ? (
-          Array.from({ length: 8 }).map((_, i) => <StatCardSkeleton key={i} />)
-        ) : (
-          <>
-            <StatCard
-              label="Revenue (all time)"
-              value={formatKes(stats?.revenueTotal ?? 0)}
-              sub={`Today: ${formatKes(stats?.revenueToday ?? 0)}`}
-              icon={TrendingUp}
-              href="/orders"
-              accent="green"
-            />
-            <StatCard
-              label="Orders"
-              value={stats?.orders ?? 0}
-              sub={`${stats?.ordersToday ?? 0} today · ${stats?.pendingPayments ?? 0} unpaid`}
-              icon={ShoppingBag}
-              href="/orders?payment=pending"
-            />
-            <StatCard
-              label="Products"
-              value={stats?.products ?? 0}
-              sub={`${stats?.unpublishedProducts ?? 0} unpublished`}
-              icon={Package}
-              href="/products"
-            />
-            <StatCard
-              label="Customers"
-              value={stats?.customers ?? 0}
-              icon={Users}
-              href="/orders"
-            />
-            <StatCard
-              label="Low stock"
-              value={stats?.lowStock ?? 0}
-              icon={AlertTriangle}
-              href="/products?stock=low_stock"
-              accent={stats?.lowStock ? "amber" : undefined}
-            />
-            <StatCard
-              label="Out of stock"
-              value={stats?.outOfStock ?? 0}
-              icon={AlertTriangle}
-              href="/products?stock=out_of_stock"
-              accent={stats?.outOfStock ? "red" : undefined}
-            />
-            <StatCard
-              label="Brands"
-              value={stats?.brands ?? 0}
-              icon={Tag}
-              href="/brands"
-            />
-            <StatCard
-              label="Categories"
-              value={stats?.categories ?? 0}
-              icon={Layers}
-              href="/categories"
-            />
-          </>
-        )}
+      <div className="space-y-6">
+        <section>
+          <SectionHeading title="Commerce" description="Revenue, orders, and customers" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => <StatCardSkeleton key={i} />)
+            ) : (
+              <>
+                <StatCard
+                  label="Revenue (all time)"
+                  value={formatKes(stats?.revenueTotal ?? 0)}
+                  sub={`Today: ${formatKes(stats?.revenueToday ?? 0)}`}
+                  icon={TrendingUp}
+                  href="/orders"
+                  accent="green"
+                />
+                <StatCard
+                  label="Orders"
+                  value={stats?.orders ?? 0}
+                  sub={`${stats?.ordersToday ?? 0} today · ${stats?.pendingPayments ?? 0} unpaid`}
+                  icon={ShoppingBag}
+                  href="/orders?payment=pending"
+                />
+                <StatCard
+                  label="Customers"
+                  value={stats?.customers ?? 0}
+                  icon={Users}
+                  href="/orders"
+                />
+              </>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <CatalogStatCards />
+        </section>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -295,11 +226,32 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-white">Quick actions</h2>
           <div className="mt-4 space-y-2">
             <Link
+              to="/products/new"
+              className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"
+            >
+              <Package className="h-3.5 w-3.5 text-[#00e599]" />
+              Add product
+            </Link>
+            <Link
+              to="/categories"
+              className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"
+            >
+              <Layers className="h-3.5 w-3.5 text-[#00e599]" />
+              Manage categories
+            </Link>
+            <Link
+              to="/brands"
+              className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"
+            >
+              <Tag className="h-3.5 w-3.5 text-[#00e599]" />
+              Manage brands
+            </Link>
+            <Link
               to="/products"
               className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"
             >
               <Package className="h-3.5 w-3.5 text-[#00e599]" />
-              Manage products
+              All products
             </Link>
             <Link
               to="/orders"
@@ -344,6 +296,71 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {!loading && data && data.catalogCategories.length > 0 && (
+        <div className="mt-6 rounded-xl border border-[#262626] bg-[#111111] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[#262626] px-5 py-4">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Catalog by category</h2>
+              <p className="text-xs text-neutral-500">
+                {stats?.categories ?? 0} categories · {stats?.subcategories ?? 0} subcategories
+              </p>
+            </div>
+            <Link
+              to="/categories"
+              className="text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:underline"
+            >
+              Manage all
+            </Link>
+          </div>
+
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#0a0a0a] text-[10px] uppercase tracking-wider text-neutral-600">
+              <tr>
+                <th className="px-5 py-3">Category</th>
+                <th className="px-5 py-3">Subcategories</th>
+                <th className="px-5 py-3">Products</th>
+                <th className="px-5 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#262626]">
+              {data.catalogCategories.map((category) => (
+                <tr key={category.id} className="text-neutral-300 hover:bg-[#1a1a1a]/50">
+                  <td className="px-5 py-3">
+                    <Link
+                      to={`/categories/${category.id}/edit`}
+                      className="font-medium text-white hover:text-[#00e599] hover:underline"
+                    >
+                      {category.label}
+                    </Link>
+                    <div className="mt-0.5 font-mono text-[10px] text-neutral-600">
+                      {category.slug}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 tabular-nums">{category.subcategoryCount}</td>
+                  <td className="px-5 py-3">
+                    {category.productCount > 0 ? (
+                      <span className="font-semibold tabular-nums text-[#00e599]">
+                        {category.productCount}
+                      </span>
+                    ) : (
+                      <span className="text-neutral-600">0</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <Link
+                      to={`/categories/${category.id}/edit`}
+                      className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-[#00e599]"
+                    >
+                      Edit
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

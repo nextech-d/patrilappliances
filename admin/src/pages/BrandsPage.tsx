@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Plus, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Search, RefreshCw, Plus, ExternalLink, Pencil, Trash2, Tag } from "lucide-react";
 import { api, STORE_URL } from "../lib/api";
+import { cardFooter, cardInner, cardOuter } from "../lib/cardSurfaces";
+import { productThumbUrl } from "../lib/products";
+import { SectionHeading, StatCardSkeleton } from "../components/StatCard";
 import type { BrandTier } from "../components/BrandForm";
 import BrandCreatedView from "../views/BrandCreatedView";
 
@@ -11,6 +14,7 @@ type Brand = {
   slug: string;
   tier: BrandTier;
   origin: string;
+  logoUrl: string | null;
   sortOrder: number;
   productCount: number;
 };
@@ -28,10 +32,109 @@ const QUICK_FILTERS = [
   { key: "partner", label: "Partner", tier: "partner" },
 ] as const;
 
-function tierBadgeClass(tier: BrandTier): string {
-  return tier === "signature"
-    ? "bg-[#00e599]/10 text-[#00e599]"
-    : "bg-neutral-500/10 text-neutral-400";
+function BrandCardSkeleton() {
+  return (
+    <div className={`flex h-full flex-col animate-pulse rounded-xl p-3 ${cardOuter}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3 w-24 rounded bg-[#333]" />
+          <div className="h-2 w-16 rounded bg-[#333]" />
+        </div>
+        <div className="h-6 w-6 rounded-md bg-[#333]" />
+      </div>
+      <div className={`mt-2 rounded-md px-2 py-1.5 ${cardInner}`}>
+        <div className="h-2.5 w-full rounded bg-[#333]" />
+      </div>
+      <div className={`mt-auto pt-2 ${cardFooter}`}>
+        <div className="ml-auto h-3 w-16 rounded bg-[#333]" />
+      </div>
+    </div>
+  );
+}
+
+function BrandCard({
+  brand,
+  onDelete,
+  deleting,
+}: {
+  brand: Brand;
+  onDelete: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className={`flex h-full flex-col rounded-xl p-3 ${cardOuter}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/brands/${brand.id}/edit`}
+            className="block truncate text-xs font-semibold text-white hover:text-[#00e599]"
+          >
+            {brand.name}
+          </Link>
+          <p className="mt-0.5 truncate font-mono text-[9px] text-neutral-600">{brand.slug}</p>
+        </div>
+        <div className="shrink-0 rounded-md bg-[#00e599]/10 p-1.5 text-[#00e599]">
+          <Tag className="h-3.5 w-3.5" />
+        </div>
+      </div>
+
+      {brand.logoUrl && (
+        <div className={`mt-2 flex h-12 items-center justify-center rounded-md px-3 ${cardInner}`}>
+          <img
+            src={productThumbUrl(brand.logoUrl)}
+            alt=""
+            className="max-h-8 max-w-full object-contain"
+          />
+        </div>
+      )}
+
+      <div className="mt-2 flex-1">
+        <div className={`flex items-center justify-between gap-2 rounded-md px-2 py-1.5 ${cardInner}`}>
+          <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-600">
+            Products
+          </span>
+          {brand.productCount > 0 ? (
+            <Link
+              to={`/products?brandId=${brand.id}`}
+              className="text-[11px] font-medium tabular-nums text-[#00e599] hover:underline"
+            >
+              {brand.productCount}
+            </Link>
+          ) : (
+            <span className="text-[11px] tabular-nums text-neutral-600">0</span>
+          )}
+        </div>
+      </div>
+
+      <div className={`mt-auto flex items-center justify-end gap-2 pt-2 ${cardFooter}`}>
+        <a
+          href={`${STORE_URL}/brand/${brand.slug}`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-neutral-500 hover:text-white"
+          title="View on storefront"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+        <Link
+          to={`/brands/${brand.id}/edit`}
+          className="text-neutral-500 hover:text-white"
+          title="Edit brand"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Link>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={deleting}
+          className="text-red-400/70 hover:text-red-400 disabled:opacity-50"
+          title="Delete brand"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function BrandsPage() {
@@ -89,6 +192,21 @@ function BrandsListPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    const currentQ = searchParams.get("q") ?? "";
+    if (trimmed === currentQ) return;
+
+    const timer = window.setTimeout(() => {
+      const next = new URLSearchParams(searchParams);
+      if (trimmed) next.set("q", trimmed);
+      else next.delete("q");
+      setSearchParams(next, { replace: true });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput, searchParams, setSearchParams]);
+
   function applyQuickFilter(key: string) {
     const filter = QUICK_FILTERS.find((f) => f.key === key);
     if (!filter) return;
@@ -108,10 +226,11 @@ function BrandsListPage() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = searchInput.trim();
     const next = new URLSearchParams(searchParams);
-    if (searchInput.trim()) next.set("q", searchInput.trim());
+    if (trimmed) next.set("q", trimmed);
     else next.delete("q");
-    setSearchParams(next);
+    setSearchParams(next, { replace: true });
   }
 
   async function handleDelete(brand: Brand) {
@@ -143,15 +262,7 @@ function BrandsListPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-white">Brands</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            {summary ? (
-              <>
-                {summary.total} total · {summary.signature} signature · {summary.partner} partner
-              </>
-            ) : (
-              "Manage product brands"
-            )}
-          </p>
+          <p className="mt-1 text-sm text-neutral-500">Manage product brands and tiers</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -172,6 +283,67 @@ function BrandsListPage() {
           </Link>
         </div>
       </div>
+
+      <section className="mt-6">
+        <SectionHeading title="Overview" description="Brand tiers in your catalog" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {loading && !summary ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className={`rounded-xl p-5 ${cardOuter}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+                      Total brands
+                    </p>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-white">
+                      {summary?.total ?? 0}
+                    </p>
+                  </div>
+                  <div className="shrink-0 rounded-lg bg-[#00e599]/10 p-2 text-[#00e599]">
+                    <Tag className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+              <div className={`rounded-xl p-5 ${cardOuter}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+                      Signature
+                    </p>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-[#00e599]">
+                      {summary?.signature ?? 0}
+                    </p>
+                  </div>
+                  <div className="shrink-0 rounded-lg bg-[#00e599]/10 p-2 text-[#00e599]">
+                    <Tag className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+              <div className={`rounded-xl p-5 ${cardOuter}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+                      Partner
+                    </p>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-white">
+                      {summary?.partner ?? 0}
+                    </p>
+                  </div>
+                  <div className="shrink-0 rounded-lg bg-[#00e599]/10 p-2 text-[#00e599]">
+                    <Tag className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {QUICK_FILTERS.map((f) => (
@@ -222,108 +394,33 @@ function BrandsListPage() {
         </p>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-[#262626]">
-        {loading ? (
-          <div className="space-y-0 divide-y divide-[#262626] bg-[#0a0a0a] p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex animate-pulse gap-4 py-4">
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-1/4 rounded bg-[#222]" />
-                  <div className="h-3 w-1/3 rounded bg-[#222]" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : brands.length === 0 ? (
-          <div className="bg-[#0a0a0a] px-6 py-16 text-center text-sm text-neutral-500">
-            No brands match your filters.
-          </div>
-        ) : (
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#111111] text-[10px] uppercase tracking-wider text-neutral-500">
-              <tr>
-                <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Tier</th>
-                <th className="px-4 py-3">Origin</th>
-                <th className="px-4 py-3">Products</th>
-                <th className="px-4 py-3">Order</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#262626] bg-[#0a0a0a]">
-              {brands.map((brand) => (
-                <tr key={brand.id} className="text-neutral-300">
-                  <td className="px-4 py-3">
-                    <Link
-                      to={`/brands/${brand.id}/edit`}
-                      className="font-medium text-white hover:text-[#00e599] hover:underline"
-                    >
-                      {brand.name}
-                    </Link>
-                    <div className="mt-0.5 font-mono text-[10px] text-neutral-600">{brand.slug}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tierBadgeClass(brand.tier)}`}
-                    >
-                      {brand.tier}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{brand.origin}</td>
-                  <td className="px-4 py-3">
-                    {brand.productCount > 0 ? (
-                      <Link
-                        to={`/products?brandId=${brand.id}`}
-                        className="text-[#00e599] hover:underline"
-                      >
-                        {brand.productCount}
-                      </Link>
-                    ) : (
-                      <span className="text-neutral-600">0</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500">{brand.sortOrder}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-3">
-                      <a
-                        href={`${STORE_URL}/brand/${brand.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-neutral-500 hover:text-white"
-                        title="View on storefront"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                      <Link
-                        to={`/brands/${brand.id}/edit`}
-                        className="text-neutral-500 hover:text-white"
-                        title="Edit"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(brand)}
-                        disabled={deletingId === brand.id}
-                        className="text-red-400/70 hover:text-red-400 disabled:opacity-50"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <section className="mt-6">
+        <SectionHeading
+          title="All brands"
+          description={
+            summary ? `${summary.filtered} of ${summary.total} shown` : undefined
+          }
+        />
 
-      {!loading && summary && (
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-neutral-600">
-          Showing {summary.filtered} of {summary.total}
-        </p>
-      )}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => <BrandCardSkeleton key={i} />)
+          ) : brands.length === 0 ? (
+            <div className={`col-span-full rounded-xl px-6 py-16 text-center text-sm text-neutral-500 ${cardInner}`}>
+              No brands match your filters.
+            </div>
+          ) : (
+            brands.map((brand) => (
+              <BrandCard
+                key={brand.id}
+                brand={brand}
+                deleting={deletingId === brand.id}
+                onDelete={() => handleDelete(brand)}
+              />
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }

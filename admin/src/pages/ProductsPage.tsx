@@ -64,6 +64,7 @@ function ProductsListPage() {
   const stockFilter = searchParams.get("stock") ?? "";
   const publishedFilter = searchParams.get("published") ?? "";
   const brandIdFilter = searchParams.get("brandId") ?? "";
+  const subcategoryIdFilter = searchParams.get("subcategoryId") ?? "";
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -72,9 +73,10 @@ function ProductsListPage() {
     if (stockFilter) params.set("stock", stockFilter);
     if (publishedFilter) params.set("published", publishedFilter);
     if (brandIdFilter) params.set("brandId", brandIdFilter);
+    if (subcategoryIdFilter) params.set("subcategoryId", subcategoryIdFilter);
     const s = params.toString();
     return s ? `?${s}` : "";
-  }, [searchParams, stockFilter, publishedFilter, brandIdFilter]);
+  }, [searchParams, stockFilter, publishedFilter, brandIdFilter, subcategoryIdFilter]);
 
   const load = useCallback(
     async (silent = false) => {
@@ -244,6 +246,23 @@ function ProductsListPage() {
             onClick={() => {
               const next = new URLSearchParams(searchParams);
               next.delete("brandId");
+              setSearchParams(next);
+            }}
+            className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {subcategoryIdFilter && (
+        <div className="mt-4 flex items-center gap-2 text-xs text-neutral-400">
+          <span>Filtered by subcategory</span>
+          <button
+            type="button"
+            onClick={() => {
+              const next = new URLSearchParams(searchParams);
+              next.delete("subcategoryId");
               setSearchParams(next);
             }}
             className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-white"

@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@prisma/client";
+import { listCategoriesFiltered } from "./catalog.js";
 import { getPrisma } from "./db.js";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -20,12 +21,21 @@ export type DashboardRecentOrder = {
   orderDate: string;
 };
 
+export type DashboardCatalogCategory = {
+  id: number;
+  label: string;
+  slug: string;
+  subcategoryCount: number;
+  productCount: number;
+};
+
 export type DashboardData = {
   stats: {
     products: number;
     orders: number;
     brands: number;
     categories: number;
+    subcategories: number;
     customers: number;
     pendingPayments: number;
     lowStock: number;
@@ -38,6 +48,7 @@ export type DashboardData = {
   ordersByStatus: Record<OrderStatus, number>;
   recentOrders: DashboardRecentOrder[];
   ordersLast7Days: Array<{ date: string; label: string; count: number; revenue: number }>;
+  catalogCategories: DashboardCatalogCategory[];
 };
 
 function startOfDay(date: Date): Date {
@@ -76,6 +87,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         orders: 0,
         brands: 0,
         categories: 0,
+        subcategories: 0,
         customers: 0,
         pendingPayments: 0,
         lowStock: 0,
@@ -88,6 +100,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       ordersByStatus: emptyStatus,
       recentOrders: [],
       ordersLast7Days: days,
+      catalogCategories: [],
     };
   }
 
@@ -111,6 +124,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     statusGroups,
     recentRows,
     weekOrders,
+    catalogResult,
   ] = await Promise.all([
     prisma.product.count(),
     prisma.order.count(),
@@ -147,6 +161,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       where: { orderDate: { gte: sevenDaysAgo } },
       select: { orderDate: true, totalKes: true },
     }),
+    listCategoriesFiltered({}),
   ]);
 
   const ordersByStatus = { ...emptyStatus };
@@ -199,12 +214,23 @@ export async function getDashboardData(): Promise<DashboardData> {
     orderDate: order.orderDate.toISOString(),
   }));
 
+  const catalogCategories: DashboardCatalogCategory[] = catalogResult.categories.map(
+    (category) => ({
+      id: category.id,
+      label: category.label,
+      slug: category.slug,
+      subcategoryCount: category.subcategoryCount,
+      productCount: category.productCount,
+    })
+  );
+
   return {
     stats: {
       products,
       orders,
       brands,
       categories,
+      subcategories: catalogResult.summary.totalSubcategories,
       customers,
       pendingPayments,
       lowStock,
@@ -217,5 +243,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     ordersByStatus,
     recentOrders,
     ordersLast7Days,
+    catalogCategories,
   };
 }

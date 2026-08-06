@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ALL_CATEGORIES, categoryHref } from "../data/categories";
+import { categoryHref } from "../data/categories";
+import { getAllCategories } from "../lib/categories.server";
 import { SITE } from "../config/site";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 import { Mail, Phone } from "lucide-react";
@@ -19,7 +20,9 @@ const PAYMENT_METHODS = [
   { label: "Cash", Logo: CashLogo, className: "bg-white hover:bg-neutral-50" },
 ] as const;
 
-export default function Footer() {
+export default async function Footer() {
+  const categories = await getAllCategories();
+
   return (
     <footer className="mt-auto border-t border-neutral-200 bg-[var(--bg)]">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -44,7 +47,7 @@ export default function Footer() {
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-black/50">Shop</h3>
             <ul className="mt-3 space-y-2">
-              {ALL_CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <li key={cat.slug}>
                   <Link href={categoryHref(cat.slug)} className="text-xs font-semibold text-black hover:text-black/70">
                     {cat.label}

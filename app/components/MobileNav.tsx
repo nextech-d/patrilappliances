@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import {
-  NAV_CATEGORIES,
   categoryHref,
   subcategoryHref,
 } from "../data/categories";
+import { useNavCategories } from "../context/CategoriesContext";
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const navCategories = useNavCategories();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -71,7 +72,7 @@ export default function MobileNav() {
                 Home
               </Link>
 
-              {NAV_CATEGORIES.map((cat) => {
+              {navCategories.map((cat) => {
                 const isExpanded = expanded === cat.slug;
                 const catActive = pathname.startsWith(`/category/${cat.slug}`);
 

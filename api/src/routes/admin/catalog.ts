@@ -13,6 +13,7 @@ import {
   getSubcategoryById,
   listBrandsFiltered,
   listCategories,
+  listCategoriesFiltered,
   listSubcategories,
   updateBrand,
   updateCategory,
@@ -150,8 +151,9 @@ adminCatalogRoute.delete("/brands/:id", async (c) => {
 });
 
 adminCatalogRoute.get("/categories", async (c) => {
-  const categories = await listCategories();
-  return c.json({ success: true, categories });
+  const q = c.req.query("q");
+  const result = await listCategoriesFiltered({ q: q || undefined });
+  return c.json({ success: true, ...result });
 });
 
 adminCatalogRoute.post("/categories", async (c) => {
@@ -192,8 +194,8 @@ adminCatalogRoute.patch("/categories/:id", async (c) => {
 
 adminCatalogRoute.delete("/categories/:id", async (c) => {
   const id = Number(c.req.param("id"));
-  const ok = await deleteCategory(id);
-  if (!ok) return c.json({ success: false, message: "Cannot delete category." }, 400);
+  const result = await deleteCategory(id);
+  if (!result.ok) return c.json({ success: false, message: result.message }, 400);
   return c.json({ success: true });
 });
 
@@ -238,7 +240,7 @@ adminCatalogRoute.patch("/subcategories/:id", async (c) => {
 
 adminCatalogRoute.delete("/subcategories/:id", async (c) => {
   const id = Number(c.req.param("id"));
-  const ok = await deleteSubcategory(id);
-  if (!ok) return c.json({ success: false, message: "Cannot delete subcategory." }, 400);
+  const result = await deleteSubcategory(id);
+  if (!result.ok) return c.json({ success: false, message: result.message }, 400);
   return c.json({ success: true });
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { api } from "../lib/api";
 import SubcategoryForm, { type SubcategoryDetail } from "../components/SubcategoryForm";
@@ -8,7 +8,9 @@ import SubcategoryCreatedView from "../views/SubcategoryCreatedView";
 export default function SubcategoryEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isNew = !id || id === "new";
+  const defaultCategoryId = Number(searchParams.get("categoryId")) || undefined;
 
   const [subcategory, setSubcategory] = useState<SubcategoryDetail | undefined>();
   const [createdId, setCreatedId] = useState<number | null>(null);
@@ -80,14 +82,22 @@ export default function SubcategoryEditPage() {
       <h1 className="text-xl font-semibold text-white">
         {isNew ? "Add subcategory" : "Edit subcategory"}
       </h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        {isNew ? "Create a new subcategory" : subcategory?.label}
-      </p>
+      {!isNew && subcategory ? (
+        <div className="mt-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+            {subcategory.categoryLabel}
+          </p>
+          <p className="mt-1 text-sm text-white">{subcategory.label}</p>
+        </div>
+      ) : (
+        <p className="mt-1 text-sm text-neutral-500">Create a new subcategory</p>
+      )}
 
       <SubcategoryForm
         subcategory={subcategory}
         mode={isNew ? "create" : "edit"}
         onCreated={setCreatedId}
+        defaultCategoryId={defaultCategoryId}
       />
     </div>
   );

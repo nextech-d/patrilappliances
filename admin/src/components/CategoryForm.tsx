@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 
+export type CategorySubcategory = {
+  id: number;
+  label: string;
+  slug: string;
+  categoryId: number;
+  sortOrder: number;
+  productCount: number;
+};
+
 export type CategoryDetail = {
   id: number;
   label: string;
@@ -10,6 +19,8 @@ export type CategoryDetail = {
   description: string;
   sortOrder: number;
   subcategoryCount?: number;
+  productCount?: number;
+  subcategories?: CategorySubcategory[];
 };
 
 type Props = {

@@ -18,6 +18,7 @@ type Props = {
   subcategory?: SubcategoryDetail;
   mode: "create" | "edit";
   onCreated?: (id: number) => void;
+  defaultCategoryId?: number;
 };
 
 function slugify(name: string): string {
@@ -28,13 +29,20 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export default function SubcategoryForm({ subcategory, mode, onCreated }: Props) {
+export default function SubcategoryForm({
+  subcategory,
+  mode,
+  onCreated,
+  defaultCategoryId,
+}: Props) {
   const navigate = useNavigate();
   const isNew = mode === "create";
 
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [label, setLabel] = useState(subcategory?.label ?? "");
-  const [categoryId, setCategoryId] = useState(subcategory?.categoryId ?? 0);
+  const [categoryId, setCategoryId] = useState(
+    subcategory?.categoryId ?? defaultCategoryId ?? 0
+  );
   const [slug, setSlug] = useState(subcategory?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!subcategory);
   const [sortOrder, setSortOrder] = useState(String(subcategory?.sortOrder ?? 0));
@@ -52,11 +60,14 @@ export default function SubcategoryForm({ subcategory, mode, onCreated }: Props)
         const opts = data.categories.map((c) => ({ id: c.id, label: c.label }));
         setCategories(opts);
         if (isNew && opts.length && !subcategory) {
-          setCategoryId(opts[0].id);
+          const preferred = defaultCategoryId && opts.some((o) => o.id === defaultCategoryId)
+            ? defaultCategoryId
+            : opts[0].id;
+          setCategoryId(preferred);
         }
       }
     );
-  }, [isNew, subcategory]);
+  }, [isNew, subcategory, defaultCategoryId]);
 
   function handleLabelChange(value: string) {
     setLabel(value);
@@ -110,16 +121,6 @@ export default function SubcategoryForm({ subcategory, mode, onCreated }: Props)
         )}
 
         <div>
-          <label className={labelClass}>Label</label>
-          <input
-            required
-            value={label}
-            onChange={(e) => handleLabelChange(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-
-        <div>
           <label className={labelClass}>Parent category</label>
           <select
             required
@@ -144,6 +145,16 @@ export default function SubcategoryForm({ subcategory, mode, onCreated }: Props)
               </Link>
             </p>
           )}
+        </div>
+
+        <div>
+          <label className={labelClass}>Label</label>
+          <input
+            required
+            value={label}
+            onChange={(e) => handleLabelChange(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
 
