@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { OrderStatus } from "@prisma/client";
 import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
 
@@ -19,6 +20,21 @@ export type PublicOrder = {
   status: string;
   total: number;
   customer: { name: string; city: string };
+  items: CartItem[];
+};
+
+export type AdminOrder = {
+  id: number;
+  trackingId: string;
+  orderDate: string;
+  status: string;
+  statusKey: OrderStatus;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  deliveryCity: string;
+  total: number;
   items: CartItem[];
 };
 
@@ -115,4 +131,55 @@ export async function getOrderByTrackingId(
       image: item.imageUrl,
     })),
   };
+}
+
+export async function listOrders(): Promise<AdminOrder[]> {
+  const prisma = getPrisma();
+  if (!prisma) return [];
+
+  const orders = await prisma.order.findMany({
+    include: { items: true },
+    orderBy: { orderDate: "desc" },
+  });
+
+  return orders.map((order) => ({
+    id: order.id,
+    trackingId: order.trackingId,
+    orderDate: order.orderDate.toISOString(),
+    status: statusLabel(order.status),
+    statusKey: order.status,
+    customerName: order.customerName,
+    customerEmail: order.customerEmail,
+    customerPhone: order.customerPhone,
+    deliveryAddress: order.deliveryAddress,
+    deliveryCity: order.deliveryCity,
+    total: order.totalKes,
+    items: order.items.map((item) => ({
+      id: item.productId ?? 0,
+      name: item.name,
+      price: item.priceKes,
+      qty: item.quantity,
+      image: item.imageUrl,
+    })),
+  }));
+}
+
+export async function updateOrderStatus(
+  trackingId: string,
+  status: OrderStatus
+): Promise<AdminOrder | null> {
+  const prisma = getPrisma();
+  if (!prisma) return null;
+
+  try {
+    await prisma.order.update({
+      where: { trackingId: trackingId.toUpperCase() },
+      data: { status },
+    });
+  } catch {
+    return null;
+  }
+
+  const orders = await listOrders();
+  return orders.find((o) => o.trackingId.toUpperCase() === trackingId.toUpperCase()) ?? null;
 }

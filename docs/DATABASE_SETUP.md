@@ -84,6 +84,22 @@ npm run db:push
 
 Checkout POSTs to `/api/orders` and saves delivery details + cart items. Payment is arranged manually (WhatsApp/phone) until payments are integrated.
 
+## Admin (Day 3)
+
+Password-protected panel at **`/admin`** (not linked from the public site).
+
+1. Add to `.env.local` and Vercel:
+
+```
+ADMIN_PASSWORD=your-strong-password-here
+```
+
+2. Sign in at `/admin/login`
+3. **Orders** — view details, update delivery status
+4. **Products** — edit price and stock status
+
+Use a long random password. Rotate it if it is ever exposed.
+
 ## Fallback
 
 If `DATABASE_URL` is missing or the DB is empty, the app falls back to static `products.ts` so the site never goes blank during setup.
