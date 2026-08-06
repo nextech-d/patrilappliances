@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { CartItem } from "../../context/CartContext";
 import { createOrder, getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
+import { getCurrentUser } from "../../lib/users.server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as OrderPayload;
-    const { name, email, phone, address, city, items, total } = payload;
+    const { name, email, phone, address, city, items, total, saveAddress } = payload;
 
     if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !city?.trim()) {
       return NextResponse.json(
@@ -68,6 +69,8 @@ export async function POST(request: Request) {
       city: city.trim(),
       items: validItems,
       total: typeof total === "number" ? total : 0,
+      userId: (await getCurrentUser())?.id,
+      saveAddress: Boolean(saveAddress),
     });
 
     return NextResponse.json({

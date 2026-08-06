@@ -39,8 +39,10 @@ Set `NEXT_PUBLIC_DEMO_MODE=true` in `.env.local` to match staging behaviour (sim
 ### Staging limitations
 
 - **Cart** — stored in the browser (`localStorage`); normal for storefronts without accounts.
-- **Orders** — saved to Postgres via `/api/orders` when `DATABASE_URL` is set. Payment is arranged manually until M-Pesa/card is integrated.
+- **Orders** — saved to Postgres via `/api/orders` when `DATABASE_URL` is set. Payment is arranged manually until M-Pesa/card is integrated. Team gets email when `RESEND_API_KEY` is set.
 - **Products** — served from Postgres via `/api/products` (static fallback if DB unavailable).
+- **Admin** — `/admin` for orders, CSV export, and full product management.
+- **Accounts** — customers can register at `/account/register` for order history and saved addresses.
 
 ### First-time Git push
 

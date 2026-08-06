@@ -1,0 +1,83 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        router.push("/account");
+        router.refresh();
+        return;
+      }
+
+      setError(data.message || "Login failed.");
+    } catch {
+      setError("Unable to sign in.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto flex min-h-[60vh] max-w-md items-center px-6 py-16">
+      <div className="w-full rounded-3xl border border-neutral-200/60 bg-white p-8 shadow-sm">
+        <h1 className="text-sm font-black uppercase tracking-wider text-neutral-900">Sign in</h1>
+        <p className="mt-2 text-xs text-neutral-500">Access your orders and saved addresses.</p>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          />
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-neutral-900 py-3.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-black disabled:opacity-50"
+          >
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-neutral-500">
+          No account?{" "}
+          <Link href="/account/register" className="font-semibold text-neutral-900 hover:underline">
+            Create one
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

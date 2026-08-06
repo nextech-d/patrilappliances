@@ -100,6 +100,19 @@ ADMIN_PASSWORD=your-strong-password-here
 
 Use a long random password. Rotate it if it is ever exposed.
 
+## Email notifications (Day 4)
+
+When `RESEND_API_KEY` is set, new orders trigger:
+
+- A notification to `ORDER_NOTIFY_EMAIL` (your team inbox)
+- A confirmation to the customer
+
+Sign up at [resend.com](https://resend.com), verify your domain (or use their sandbox sender for testing), and add the key to Vercel.
+
+## Customer accounts (Day 4)
+
+Customers can register at **`/account/register`**, sign in, view order history, and save delivery addresses. Checkout prefills from their account when signed in.
+
 ## Fallback
 
 If `DATABASE_URL` is missing or the DB is empty, the app falls back to static `products.ts` so the site never goes blank during setup.

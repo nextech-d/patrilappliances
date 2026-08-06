@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { StockStatus } from "@prisma/client";
 import { formatPrice } from "../../lib/formatPrice";
-import type { AdminProduct } from "../../lib/products.server";
+import type { AdminProductListItem } from "../../lib/products.server";
 
 const STOCK_OPTIONS: { value: StockStatus; label: string }[] = [
   { value: "in_stock", label: "In stock" },
@@ -12,7 +13,7 @@ const STOCK_OPTIONS: { value: StockStatus; label: string }[] = [
 ];
 
 type ProductsPanelProps = {
-  initialProducts: AdminProduct[];
+  initialProducts: AdminProductListItem[];
 };
 
 export default function ProductsPanel({ initialProducts }: ProductsPanelProps) {
@@ -60,6 +61,15 @@ export default function ProductsPanel({ initialProducts }: ProductsPanelProps) {
 
   return (
     <div>
+      <div className="mb-4 flex justify-end">
+        <Link
+          href="/admin/products/new"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-black"
+        >
+          + New product
+        </Link>
+      </div>
+
       {message && (
         <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900">
           {message}
@@ -75,7 +85,7 @@ export default function ProductsPanel({ initialProducts }: ProductsPanelProps) {
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Price (KES)</th>
                 <th className="px-4 py-3">Stock</th>
-                <th className="px-4 py-3"></th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -128,14 +138,22 @@ export default function ProductsPanel({ initialProducts }: ProductsPanelProps) {
                       </select>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        disabled={savingId === product.id}
-                        onClick={() => saveProduct(product.id)}
-                        className="rounded-full bg-neutral-900 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-black disabled:opacity-50"
-                      >
-                        {savingId === product.id ? "Saving..." : "Save"}
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={savingId === product.id}
+                          onClick={() => saveProduct(product.id)}
+                          className="rounded-full bg-neutral-900 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-black disabled:opacity-50"
+                        >
+                          {savingId === product.id ? "..." : "Save"}
+                        </button>
+                        <Link
+                          href={`/admin/products/${product.id}/edit`}
+                          className="rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-600 hover:border-neutral-900 hover:text-neutral-900"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

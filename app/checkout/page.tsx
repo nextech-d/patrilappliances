@@ -24,6 +24,28 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me?include=all")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.success || !data.user) return;
+        setIsLoggedIn(true);
+        setName(data.user.name ?? "");
+        setEmail(data.user.email ?? "");
+        setPhone(data.user.phone ?? "");
+        const defaultAddr =
+          data.addresses?.find((a: { isDefault: boolean }) => a.isDefault) ??
+          data.addresses?.[0];
+        if (defaultAddr) {
+          setAddress(defaultAddr.addressLine ?? "");
+          setCity(defaultAddr.city ?? "");
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -47,7 +69,7 @@ export default function CheckoutPage() {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, address, city, items, total }),
+        body: JSON.stringify({ name, email, phone, address, city, items, total, saveAddress }),
       });
       const data = await response.json();
 
@@ -156,6 +178,17 @@ export default function CheckoutPage() {
                   />
                 </div>
               </div>
+
+              {isLoggedIn && (
+                <label className="flex items-center gap-2 text-xs text-neutral-600">
+                  <input
+                    type="checkbox"
+                    checked={saveAddress}
+                    onChange={(e) => setSaveAddress(e.target.checked)}
+                  />
+                  Save this address to my account
+                </label>
+              )}
 
               <p className="text-[11px] leading-relaxed text-neutral-500">
                 Payment is arranged after you order — we&apos;ll call or WhatsApp you to confirm

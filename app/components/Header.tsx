@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import SearchPopover from "./SearchPopover";
 import NavMenu from "./NavMenu";
 import MobileNav from "./MobileNav";
+import AccountLink from "./AccountLink";
 
 export default function Header() {
   const { items, setCartOpen } = useCart();
@@ -22,6 +23,7 @@ export default function Header() {
         <SearchPopover />
 
         <div className="flex shrink-0 items-center space-x-2 sm:space-x-3">
+          <AccountLink />
           <NavMenu />
           <MobileNav />
 

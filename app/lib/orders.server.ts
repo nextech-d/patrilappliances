@@ -3,6 +3,7 @@ import "server-only";
 import type { OrderStatus } from "@prisma/client";
 import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
+import { sendOrderEmails } from "./email.server";
 
 export type OrderPayload = {
   name: string;
@@ -12,6 +13,8 @@ export type OrderPayload = {
   city: string;
   items: CartItem[];
   total: number;
+  userId?: number;
+  saveAddress?: boolean;
 };
 
 export type PublicOrder = {
@@ -69,12 +72,13 @@ export async function createOrder(payload: OrderPayload) {
     throw new Error("Orders require DATABASE_URL to be configured.");
   }
 
-  const { name, email, phone, address, city, items, total } = payload;
+  const { name, email, phone, address, city, items, total, userId, saveAddress } = payload;
   const trackingId = await generateTrackingId();
 
   const order = await prisma.order.create({
     data: {
       trackingId,
+      userId: userId ?? null,
       customerName: name.trim(),
       customerEmail: email.trim(),
       customerPhone: phone.trim(),
@@ -94,7 +98,23 @@ export async function createOrder(payload: OrderPayload) {
     include: { items: true },
   });
 
-  return {
+  if (userId && saveAddress) {
+    const { createSavedAddress, listUserAddresses } = await import("./users.server");
+    const existing = await listUserAddresses(userId);
+    const duplicate = existing.some(
+      (a) => a.addressLine === address.trim() && a.city === city.trim()
+    );
+    if (!duplicate) {
+      await createSavedAddress(userId, {
+        label: "Home",
+        addressLine: address.trim(),
+        city: city.trim(),
+        isDefault: existing.length === 0,
+      });
+    }
+  }
+
+  const result = {
     trackingId: order.trackingId,
     orderDate: order.orderDate.toISOString(),
     status: statusLabel(order.status),
@@ -102,6 +122,10 @@ export async function createOrder(payload: OrderPayload) {
     customer: { name, email, phone, address, city },
     items,
   };
+
+  void sendOrderEmails(result);
+
+  return result;
 }
 
 export async function getOrderByTrackingId(
@@ -182,4 +206,29 @@ export async function updateOrderStatus(
 
   const orders = await listOrders();
   return orders.find((o) => o.trackingId.toUpperCase() === trackingId.toUpperCase()) ?? null;
+}
+
+export function ordersToCsv(orders: AdminOrder[]): string {
+  const header =
+    "tracking_id,order_date,status,customer_name,customer_email,customer_phone,address,city,total_kes,items";
+  const rows = orders.map((order) => {
+    const items = order.items
+      .map((item) => `${item.name} x${item.qty}`)
+      .join("; ")
+      .replace(/"/g, '""');
+    const fields = [
+      order.trackingId,
+      order.orderDate,
+      order.statusKey,
+      order.customerName,
+      order.customerEmail,
+      order.customerPhone,
+      order.deliveryAddress,
+      order.deliveryCity,
+      String(order.total),
+      `"${items}"`,
+    ];
+    return fields.map((f) => `"${String(f).replace(/"/g, '""')}"`).join(",");
+  });
+  return [header, ...rows].join("\n");
 }

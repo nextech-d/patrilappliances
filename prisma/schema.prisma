@@ -110,10 +110,13 @@ model Order {
   deliveryCity    String      @map("delivery_city")
   totalKes        Int         @map("total_kes")
   orderDate       DateTime    @default(now()) @map("order_date")
+  userId          Int?        @map("user_id")
   items           OrderItem[]
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([trackingId])
   @@index([orderDate])
+  @@index([userId])
   @@map("orders")
 }
 
@@ -130,4 +133,42 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  passwordHash String         @map("password_hash")
+  name         String
+  phone        String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  sessions     Session[]
+  addresses    SavedAddress[]
+  orders       Order[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model SavedAddress {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @map("user_id")
+  label       String  @default("Home")
+  addressLine String  @map("address_line")
+  city        String
+  isDefault   Boolean @default(false) @map("is_default")
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_addresses")
 }

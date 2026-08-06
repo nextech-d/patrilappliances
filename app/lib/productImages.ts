@@ -14,9 +14,16 @@ export type ProductImageSet = {
 
 const UNSPLASH_BASE = "https://images.unsplash.com";
 
-/** Square crop URL — w and h match for consistent grid alignment. */
-export function buildSquareImageUrl(photoId: string, width: number): string {
-  return `${UNSPLASH_BASE}/${photoId}?auto=format&fit=crop&w=${width}&h=${width}&q=80`;
+function isFullUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+/** Square crop URL — supports Unsplash photo ids or full image URLs. */
+export function buildSquareImageUrl(photoIdOrUrl: string, width: number): string {
+  if (isFullUrl(photoIdOrUrl)) {
+    return photoIdOrUrl;
+  }
+  return `${UNSPLASH_BASE}/${photoIdOrUrl}?auto=format&fit=crop&w=${width}&h=${width}&q=80`;
 }
 
 export function buildProductImageSet(
