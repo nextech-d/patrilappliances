@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Package, Search } from "lucide-react";
+import { ArrowLeft, Package, Search, Copy, Check } from "lucide-react";
 import { formatPrice } from "../lib/formatPrice";
 import DemoModeBanner from "../components/DemoModeBanner";
 
@@ -19,6 +19,7 @@ type TrackedOrder = {
   trackingId: string;
   orderDate: string;
   status: string;
+  paymentStatus: string;
   total: number;
   customer: {
     name: string;
@@ -41,17 +42,25 @@ function TrackOrderContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [order, setOrder] = useState<TrackedOrder | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [autoSearched, setAutoSearched] = useState(false);
 
   useEffect(() => {
     const id = searchParams.get("id");
     if (id) setTrackingId(id);
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const id = trackingId.trim().toUpperCase();
+  useEffect(() => {
+    const id = searchParams.get("id")?.trim();
+    if (!id || autoSearched) return;
+    setAutoSearched(true);
+    void lookupOrder(id);
+  }, [searchParams, autoSearched]);
+
+  async function lookupOrder(rawId: string) {
+    const id = rawId.trim().toUpperCase();
     if (!id) {
-      setError("Please enter your tracking ID.");
+      setError("Please enter your order reference.");
       setOrder(null);
       return;
     }
@@ -69,7 +78,7 @@ function TrackOrderContent() {
       };
 
       if (!res.ok || !data.success || !data.order) {
-        setError(data.message ?? "Order not found. Check your tracking ID and try again.");
+        setError(data.message ?? "Order not found. Check your reference and try again.");
         return;
       }
 
@@ -79,7 +88,19 @@ function TrackOrderContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await lookupOrder(trackingId);
   };
+
+  async function copyReference() {
+    if (!order) return;
+    await navigator.clipboard.writeText(order.trackingId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -92,21 +113,21 @@ function TrackOrderContent() {
           Back to Home
         </Link>
 
-        <DemoModeBanner className="mb-8" />
+        <DemoModeBanner variant="track-order" className="mb-8 mt-6" />
 
-        <div className="mt-8 text-center">
+        <div className="mt-4 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-900 text-white">
             <Package className="h-7 w-7" />
           </div>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-black">Track Your Order</h1>
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-black">Track your order</h1>
           <p className="mt-2 text-sm text-black/60">
-            Enter the tracking ID from your order confirmation (e.g. PTL-123456).
+            Enter the order reference from your confirmation (e.g. PTL-123456).
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-10">
           <label htmlFor="trackingId" className="sr-only">
-            Tracking ID
+            Order reference
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <input
@@ -137,10 +158,22 @@ function TrackOrderContent() {
         {order && (
           <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <div className="border-b border-neutral-100 bg-neutral-50 px-6 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                Tracking ID
-              </p>
-              <p className="mt-1 font-mono text-lg font-bold text-black">{order.trackingId}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                    Order reference
+                  </p>
+                  <p className="mt-1 font-mono text-lg font-bold text-black">{order.trackingId}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyReference}
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-600 hover:border-neutral-400"
+                >
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
@@ -152,7 +185,19 @@ function TrackOrderContent() {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-                  Order Date
+                  Payment
+                </p>
+                <p
+                  className={`mt-1 text-sm font-semibold ${
+                    order.paymentStatus === "Paid" ? "text-emerald-700" : "text-amber-700"
+                  }`}
+                >
+                  {order.paymentStatus}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                  Order date
                 </p>
                 <p className="mt-1 text-sm font-semibold text-black">
                   {new Date(order.orderDate).toLocaleDateString("en-KE", {
@@ -167,6 +212,7 @@ function TrackOrderContent() {
                   Customer
                 </p>
                 <p className="mt-1 text-sm font-semibold text-black">{order.customer.name}</p>
+                <p className="text-xs text-neutral-500">{order.customer.city}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
@@ -185,7 +231,7 @@ function TrackOrderContent() {
               <ul className="mt-3 space-y-3">
                 {order.items.map((item) => (
                   <li
-                    key={item.id}
+                    key={`${item.id}-${item.name}`}
                     className="flex items-center justify-between gap-4 text-sm"
                   >
                     <span className="font-medium text-neutral-900">
@@ -198,6 +244,15 @@ function TrackOrderContent() {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="border-t border-neutral-100 bg-neutral-50 px-6 py-4 text-center">
+              <p className="text-xs text-neutral-500">
+                Questions about your order?{" "}
+                <Link href="/" className="font-semibold text-neutral-900 hover:underline">
+                  Contact us via WhatsApp
+                </Link>
+              </p>
             </div>
           </div>
         )}

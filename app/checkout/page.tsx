@@ -263,12 +263,7 @@ export default function CheckoutPage() {
               Thanks, <span className="font-semibold text-neutral-800">{name}</span>. We&apos;ve saved your order and will be in touch soon.
             </p>
 
-            {SITE.demoMode && (
-              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] leading-relaxed text-amber-950">
-                <strong>Demo mode.</strong> Your order is saved to our database, but payment is
-                still handled manually — we&apos;ll contact you to arrange it.
-              </p>
-            )}
+            {SITE.demoMode && <DemoModeBanner variant="checkout-success" className="mt-4" />}
 
             <div className="bg-neutral-50 rounded-2xl p-5 border border-neutral-100 my-8 text-left text-xs font-semibold text-neutral-600 space-y-2">
               <div className="flex justify-between">
@@ -289,16 +284,34 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <p className="text-[10px] text-neutral-400 mb-8 leading-relaxed max-w-xs mx-auto">
-              We&apos;ll call or WhatsApp you at <span className="font-bold">{phone}</span> within 2 hours to confirm delivery and payment.
+            <p className="text-[10px] text-neutral-400 mb-6 leading-relaxed max-w-xs mx-auto">
+              Save your reference <span className="font-mono font-bold text-neutral-600">{trackingId}</span> to
+              track status anytime. We&apos;ll also call or WhatsApp you at{" "}
+              <span className="font-bold">{phone}</span> within 2 hours.
             </p>
 
-            <Link
-              href="/"
-              className="inline-block px-8 py-3 bg-neutral-900 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-black transition active:scale-95 shadow-md"
-            >
-              Return Home
-            </Link>
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href={`/track-order?id=${encodeURIComponent(trackingId)}`}
+                className="inline-block px-8 py-3 bg-emerald-600 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-emerald-700 transition active:scale-95 shadow-md"
+              >
+                Track order
+              </Link>
+              {isLoggedIn && (
+                <Link
+                  href="/account/orders"
+                  className="inline-block px-8 py-3 border border-neutral-300 text-neutral-700 text-xs font-bold tracking-widest uppercase rounded-full hover:border-neutral-900 hover:text-neutral-900 transition active:scale-95"
+                >
+                  My orders
+                </Link>
+              )}
+              <Link
+                href="/"
+                className="inline-block px-8 py-3 bg-neutral-900 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-black transition active:scale-95 shadow-md"
+              >
+                Return home
+              </Link>
+            </div>
           </div>
         )}
       </div>

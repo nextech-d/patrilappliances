@@ -239,6 +239,7 @@ export async function listOrdersForUser(userId: number) {
     trackingId: order.trackingId,
     orderDate: order.orderDate.toISOString(),
     status: order.status,
+    paymentStatus: order.paymentStatus,
     total: order.totalKes,
     items: order.items.map((item) => ({
       name: item.name,

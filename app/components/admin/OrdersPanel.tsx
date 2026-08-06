@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { OrderStatus } from "@prisma/client";
+import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import { formatPrice } from "../../lib/formatPrice";
 import type { AdminOrder } from "../../lib/orders.server";
 
@@ -13,6 +13,12 @@ const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+const PAYMENT_OPTIONS: { value: PaymentStatus; label: string }[] = [
+  { value: "pending", label: "Payment pending" },
+  { value: "paid", label: "Paid" },
+  { value: "refunded", label: "Refunded" },
+];
+
 type OrdersPanelProps = {
   initialOrders: AdminOrder[];
 };
@@ -22,13 +28,16 @@ export default function OrdersPanel({ initialOrders }: OrdersPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  async function updateStatus(trackingId: string, status: OrderStatus) {
+  async function patchOrder(
+    trackingId: string,
+    updates: { status?: OrderStatus; paymentStatus?: PaymentStatus }
+  ) {
     setSavingId(trackingId);
     try {
       const res = await fetch("/api/admin/orders", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackingId, status }),
+        body: JSON.stringify({ trackingId, ...updates }),
       });
       const data = await res.json();
       if (data.success && data.order) {
@@ -76,8 +85,19 @@ export default function OrdersPanel({ initialOrders }: OrdersPanelProps) {
               <div className="min-w-[100px] text-xs font-bold text-neutral-900">
                 {formatPrice(order.total)}
               </div>
-              <div className="min-w-[160px] text-[10px] font-semibold text-neutral-600">
+              <div className="min-w-[120px] text-[10px] font-semibold text-neutral-600">
                 {order.status}
+              </div>
+              <div
+                className={`min-w-[100px] text-[10px] font-bold uppercase tracking-wider ${
+                  order.paymentStatusKey === "paid"
+                    ? "text-emerald-600"
+                    : order.paymentStatusKey === "refunded"
+                      ? "text-red-600"
+                      : "text-amber-600"
+                }`}
+              >
+                {order.paymentStatus}
               </div>
             </button>
 
@@ -116,22 +136,48 @@ export default function OrdersPanel({ initialOrders }: OrdersPanelProps) {
                   </ul>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                    Update status
-                  </label>
-                  <select
-                    value={order.statusKey}
-                    disabled={savingId === order.trackingId}
-                    onChange={(e) => updateStatus(order.trackingId, e.target.value as OrderStatus)}
-                    className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                  >
-                    {STATUS_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                      Delivery status
+                    </label>
+                    <select
+                      value={order.statusKey}
+                      disabled={savingId === order.trackingId}
+                      onChange={(e) =>
+                        patchOrder(order.trackingId, { status: e.target.value as OrderStatus })
+                      }
+                      className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                    >
+                      {STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                      Payment
+                    </label>
+                    <select
+                      value={order.paymentStatusKey}
+                      disabled={savingId === order.trackingId}
+                      onChange={(e) =>
+                        patchOrder(order.trackingId, {
+                          paymentStatus: e.target.value as PaymentStatus,
+                        })
+                      }
+                      className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                    >
+                      {PAYMENT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

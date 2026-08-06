@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { formatPrice } from "../../../lib/formatPrice";
 import { getCurrentUser, listOrdersForUser } from "../../../lib/users.server";
@@ -8,6 +9,12 @@ const STATUS_LABELS: Record<string, string> = {
   shipped: "Shipped",
   delivered: "Delivered",
   cancelled: "Cancelled",
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  pending: "Payment pending",
+  paid: "Paid",
+  refunded: "Refunded",
 };
 
 export default async function AccountOrdersPage() {
@@ -27,12 +34,19 @@ export default async function AccountOrdersPage() {
             <li key={order.trackingId} className="rounded-2xl border border-neutral-200/60 bg-white p-5">
               <div className="flex flex-wrap justify-between gap-2 text-xs">
                 <span className="font-mono font-bold text-emerald-600">{order.trackingId}</span>
-                <span className="text-neutral-400">
-                  {new Date(order.orderDate).toLocaleDateString("en-KE")}
-                </span>
+                <Link
+                  href={`/track-order?id=${encodeURIComponent(order.trackingId)}`}
+                  className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
+                >
+                  Track status →
+                </Link>
               </div>
               <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                 {STATUS_LABELS[order.status] ?? order.status}
+                <span className="mx-2 text-neutral-300">·</span>
+                {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
+                <span className="mx-2 text-neutral-300">·</span>
+                {new Date(order.orderDate).toLocaleDateString("en-KE")}
               </p>
               <ul className="mt-3 divide-y divide-neutral-100 text-xs text-neutral-600">
                 {order.items.map((item) => (

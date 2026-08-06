@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { buildPageMetadata, noIndexMetadata } from "../lib/seo";
+import { buildPageMetadata } from "../lib/seo";
 
-export const metadata: Metadata = {
-  ...buildPageMetadata({
-    title: "Track Order",
-    description: "Look up your Patril Appliances order status.",
-  }),
-  ...noIndexMetadata,
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Track Your Order",
+  description:
+    "Look up your Patril Appliances order status with your order reference (e.g. PTL-123456).",
+  path: "/track-order",
+});
 
 export default function TrackOrderLayout({ children }: { children: React.ReactNode }) {
   return children;

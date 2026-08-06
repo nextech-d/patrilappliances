@@ -117,14 +117,61 @@ The app ships with:
 
 **Vercel Analytics:** enable in **Vercel → Project → Analytics**, then redeploy. The `@vercel/analytics` component is already in the root layout. Analytics does not run in local dev.
 
+## Email notifications & manual payments (Day 6)
+
+Day 6 adds **server-side pricing**, **manual payment tracking**, and **polished email hooks** (no M-Pesa integration yet).
+
+### Server-side checkout validation
+
+Checkout no longer trusts prices from the browser. `POST /api/orders`:
+
+- Loads each product from Postgres at order time
+- Rejects unpublished or out-of-stock items
+- Recalculates the total server-side and saves price snapshots
+
+### Manual payment status
+
+Orders have a `payment_status` field (`pending` | `paid` | `refunded`):
+
+- Defaults to **pending** on new orders
+- Admin can mark **Paid** or **Refunded** in `/admin/orders`
+- Customers see payment status on `/track-order`
+
+After pulling Day 6 changes, run:
+
+```bash
+npm run db:push
+```
+
+### Email (Resend)
+
+When `RESEND_API_KEY` is set:
+
+- **New order** — team notification + customer confirmation (with track-order link)
+- **Status update** — customer email when admin changes delivery status
+
+Sign up at [resend.com](https://resend.com), verify your domain (or use their sandbox sender for testing), and add to Vercel:
+
+```
+RESEND_API_KEY=re_...
+EMAIL_FROM=Patril Appliances <orders@yourdomain.com>
+ORDER_NOTIFY_EMAIL=hello@patrilappliances.com
+```
+
+## Order tracking (Day 5)
+
+Customers can track orders at **`/track-order`** using their reference (e.g. `PTL-123456`).
+
+- Lookup reads from Postgres via `GET /api/orders?trackingId=`
+- Checkout success shows **Track order** + optional **My orders** when signed in
+- Account order history links to track status
+- Admin can update status in `/admin/orders` — customers see the update when they track
+
+Payment integration (M-Pesa STK / card) can be added in a future phase. Until then, mark orders **Paid** manually in admin after receiving M-Pesa or bank transfer.
+
 ## Email notifications (Day 4)
 
-When `RESEND_API_KEY` is set, new orders trigger:
-
-- A notification to `ORDER_NOTIFY_EMAIL` (your team inbox)
-- A confirmation to the customer
-
-Sign up at [resend.com](https://resend.com), verify your domain (or use their sandbox sender for testing), and add the key to Vercel.
+See **Day 6** above for the full email setup (order confirmations, status updates, and Resend env vars).
 
 ## Customer accounts (Day 4)
 

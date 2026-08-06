@@ -99,10 +99,17 @@ enum OrderStatus {
   cancelled
 }
 
+enum PaymentStatus {
+  pending
+  paid
+  refunded
+}
+
 model Order {
-  id              Int         @id @default(autoincrement())
-  trackingId      String      @unique @map("tracking_id")
-  status          OrderStatus @default(confirmed)
+  id              Int           @id @default(autoincrement())
+  trackingId      String        @unique @map("tracking_id")
+  status          OrderStatus   @default(confirmed)
+  paymentStatus   PaymentStatus @default(pending) @map("payment_status")
   customerName    String      @map("customer_name")
   customerEmail   String      @map("customer_email")
   customerPhone   String      @map("customer_phone")

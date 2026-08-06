@@ -82,9 +82,23 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     console.error("Order processing failure:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    const status = message.includes("DATABASE_URL") ? 503 : 500;
+    const validationErrors = [
+      "empty",
+      "invalid",
+      "unavailable",
+      "out of stock",
+      "DATABASE_URL",
+    ];
+    const isValidation = validationErrors.some((phrase) =>
+      message.toLowerCase().includes(phrase)
+    );
+    const status = message.includes("DATABASE_URL") ? 503 : isValidation ? 400 : 500;
     return NextResponse.json(
-      { success: false, message: "Unable to place your order. Please try again.", error: message },
+      {
+        success: false,
+        message: isValidation ? message : "Unable to place your order. Please try again.",
+        error: message,
+      },
       { status }
     );
   }
