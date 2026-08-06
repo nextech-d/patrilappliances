@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import CartToast from "./components/CartToast";
+import SiteJsonLd from "./components/SiteJsonLd";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
-import { SITE } from "./config/site";
+import { rootMetadata } from "./lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,10 +21,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: `${SITE.name} — Home & Gym Appliances`,
-  description: `Shop kitchen and gym equipment in ${SITE.city}. Free delivery in Nairobi, installation help, and M-Pesa accepted across ${SITE.region}.`,
-};
+export const metadata = rootMetadata;
 
 export default function RootLayout({
   children,
@@ -32,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
+        <SiteJsonLd />
         <CartProvider>
           <ProductsProvider>
             <Header />
@@ -41,6 +41,7 @@ export default function RootLayout({
             <Footer />
           </ProductsProvider>
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );

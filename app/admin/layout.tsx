@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import AdminNav from "../components/AdminNav";
+import { noIndexMetadata } from "../lib/seo";
+
+export const metadata: Metadata = noIndexMetadata;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

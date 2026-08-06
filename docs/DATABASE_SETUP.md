@@ -100,6 +100,23 @@ ADMIN_PASSWORD=your-strong-password-here
 
 Use a long random password. Rotate it if it is ever exposed.
 
+## SEO & Analytics
+
+Set your public URL for sitemaps and social previews:
+
+```
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+The app ships with:
+
+- `/sitemap.xml` — home, categories, brands, and product pages
+- `/robots.txt` — blocks admin, account, checkout, and API routes
+- Open Graph + Twitter metadata on product, category, and brand pages
+- JSON-LD (`Organization` + `WebSite`) on every page
+
+**Vercel Analytics:** enable in **Vercel → Project → Analytics**, then redeploy. The `@vercel/analytics` component is already in the root layout. Analytics does not run in local dev.
+
 ## Email notifications (Day 4)
 
 When `RESEND_API_KEY` is set, new orders trigger:
