@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:api": "npm run dev --prefix api",
+    "dev:admin": "npm run dev --prefix admin",
+    "dev:all": "concurrently -n api,admin,store -c blue,magenta,green \"npm run dev:api\" \"npm run dev:admin\" \"npm run dev\"",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
@@ -34,6 +37,7 @@
     "@types/pg": "^8.20.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "prisma": "^7.9.1",

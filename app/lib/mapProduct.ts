@@ -38,6 +38,8 @@ export function mapDbProductToAppliance(product: ProductWithRelations): Applianc
     specs: product.specs,
     description: product.description,
     highlights: product.highlights as string[],
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
     imageSet,
     image: imageSet.card,
     images: imageSet.gallery,

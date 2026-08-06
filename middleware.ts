@@ -6,6 +6,33 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === "/admin/login";
   const isLoginApi = pathname === "/api/admin/login";
+  const adminAppUrl = process.env.ADMIN_APP_URL?.trim().replace(/\/$/, "");
+  const legacyDisabled = process.env.DISABLE_LEGACY_ADMIN === "true";
+
+  if (adminAppUrl || legacyDisabled) {
+    if (pathname.startsWith("/api/admin") && !isLoginApi) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Legacy admin API is disabled. Use the Patril Admin app.",
+        },
+        { status: 410 }
+      );
+    }
+
+    if (pathname.startsWith("/admin")) {
+      if (adminAppUrl) {
+        const adminPath = pathname.replace(/^\/admin/, "") || "/";
+        const target = new URL(adminPath, `${adminAppUrl}/`);
+        target.search = request.nextUrl.search;
+        return NextResponse.redirect(target);
+      }
+      if (legacyDisabled && !isLoginPage) {
+        return NextResponse.redirect(new URL("/admin/login", request.url));
+      }
+    }
+  }
+
   const isProtected =
     (pathname.startsWith("/admin") && !isLoginPage) ||
     (pathname.startsWith("/api/admin") && !isLoginApi);

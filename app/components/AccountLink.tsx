@@ -29,14 +29,7 @@ export default function AccountLink() {
   }
 
   if (!user) {
-    return (
-      <Link
-        href="/account/login"
-        className="hidden rounded-full border border-neutral-300 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600 hover:border-neutral-900 hover:text-neutral-900 sm:inline-flex"
-      >
-        Sign in
-      </Link>
-    );
+    return null;
   }
 
   return (

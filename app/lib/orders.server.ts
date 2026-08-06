@@ -5,6 +5,7 @@ import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
 import { sendOrderEmails, sendOrderStatusEmail } from "./email.server";
 import { mapDbProductToAppliance } from "./mapProduct";
+import { validateOrderUpdate } from "./order-rules";
 
 export type OrderPayload = {
   name: string;
@@ -115,6 +116,12 @@ export async function validateOrderItems(items: CartItem[]): Promise<OrderValida
     }
     if (product.stockStatus === "out_of_stock") {
       return { ok: false, message: `${product.name} is out of stock.` };
+    }
+    if (product.stockStatus === "low_stock") {
+      return {
+        ok: false,
+        message: `${product.name} has limited stock — please contact us to complete this order.`,
+      };
     }
 
     const appliance = mapDbProductToAppliance(product);
@@ -309,6 +316,11 @@ export async function updateOrder(
   const normalized = trackingId.toUpperCase();
   const existing = await prisma.order.findUnique({ where: { trackingId: normalized } });
   if (!existing) return null;
+
+  const validation = validateOrderUpdate(existing, updates);
+  if (!validation.ok) {
+    throw new Error(validation.message);
+  }
 
   const data: { status?: OrderStatus; paymentStatus?: PaymentStatus } = {};
   if (updates.status) data.status = updates.status;

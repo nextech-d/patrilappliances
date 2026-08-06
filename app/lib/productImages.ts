@@ -15,7 +15,11 @@ export type ProductImageSet = {
 const UNSPLASH_BASE = "https://images.unsplash.com";
 
 function isFullUrl(value: string): boolean {
-  return value.startsWith("http://") || value.startsWith("https://");
+  return (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("/")
+  );
 }
 
 /** Square crop URL — supports Unsplash photo ids or full image URLs. */

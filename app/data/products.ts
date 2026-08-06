@@ -19,6 +19,8 @@ export type Appliance = {
   brand: string;
   description: string;
   highlights: string[];
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 };
 
 type ApplianceInput = Omit<Appliance, "image" | "images" | "imageSet"> & {
