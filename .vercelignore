@@ -1,0 +1,3 @@
+# Standalone apps deployed separately — not part of the Next.js storefront build.
+admin/
+api/
