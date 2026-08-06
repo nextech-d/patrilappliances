@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Tag, Settings2 } from "lucide-react";
 import { api } from "../lib/api";
 import BrandLogoField from "./BrandLogoField";
+import {
+  StorefrontField,
+  StorefrontSection,
+  storefrontInputClass,
+} from "./StorefrontPanel";
 
 export type BrandTier = "signature" | "partner";
 
@@ -55,11 +61,6 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const inputClass =
-    "w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none";
-  const labelClass =
-    "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-neutral-500";
-
   function handleNameChange(value: string) {
     setName(value);
     if (!slugTouched) setSlug(slugify(value));
@@ -106,63 +107,62 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
-      <div className="space-y-5 rounded-xl border border-[#262626] bg-[#111111] p-6">
+    <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <StorefrontSection
+        title="Brand details"
+        description="Name, origin, SEO fields, and logo for storefront brand pages."
+        icon={Tag}
+        accent="violet"
+      >
         {error && (
           <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
             {error}
           </p>
         )}
-
-        <div>
-          <label className={labelClass}>Brand name</label>
+        <StorefrontField label="Brand name">
           <input
             required
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            className={inputClass}
+            className={storefrontInputClass}
           />
-        </div>
-
-        <div>
-          <label className={labelClass}>Meta title</label>
+        </StorefrontField>
+        <StorefrontField label="Meta title" hint="Defaults to brand name if empty.">
           <input
             value={metaTitle}
             onChange={(e) => setMetaTitle(e.target.value)}
-            placeholder="SEO page title (defaults to brand name)"
-            className={inputClass}
+            placeholder="SEO page title"
+            className={storefrontInputClass}
           />
-        </div>
-
-        <div>
-          <label className={labelClass}>Meta description</label>
+        </StorefrontField>
+        <StorefrontField label="Meta description" hint={`${metaDescription.length} characters`}>
           <textarea
             rows={3}
             value={metaDescription}
             onChange={(e) => setMetaDescription(e.target.value)}
-            placeholder="Short summary for search results (~155 characters)"
-            className={inputClass}
+            placeholder="Short summary for search results"
+            className={storefrontInputClass}
           />
-          <p className="mt-1 text-[10px] text-neutral-600">{metaDescription.length} characters</p>
-        </div>
-
-        <div>
-          <label className={labelClass}>Origin</label>
+        </StorefrontField>
+        <StorefrontField label="Origin">
           <input
             required
             value={origin}
             onChange={(e) => setOrigin(e.target.value)}
             placeholder="e.g. USA, Germany, Kenya"
-            className={inputClass}
+            className={storefrontInputClass}
           />
-        </div>
-
+        </StorefrontField>
         <BrandLogoField value={logoUrl} onChange={setLogoUrl} />
-      </div>
+      </StorefrontSection>
 
-      <div className="space-y-5">
-        <div className="rounded-xl border border-[#262626] bg-[#111111] p-5">
-          <label className={labelClass}>Slug</label>
+      <StorefrontSection
+        title="Settings"
+        description="URL slug and listing order."
+        icon={Settings2}
+        accent="sky"
+      >
+        <StorefrontField label="Slug">
           <input
             value={slug}
             onChange={(e) => {
@@ -170,34 +170,31 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
               setSlug(e.target.value);
             }}
             placeholder={slugify(name) || "brand-slug"}
-            className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2 font-mono text-xs text-white focus:border-[#00e599]/40 focus:outline-none"
+            className={`${storefrontInputClass} font-mono text-xs`}
           />
-
-          <label className={`${labelClass} mt-4`}>Sort order</label>
+        </StorefrontField>
+        <StorefrontField label="Sort order" hint="Lower numbers appear first.">
           <input
             type="number"
             min={0}
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2 text-sm text-white focus:border-[#00e599]/40 focus:outline-none"
+            className={storefrontInputClass}
           />
-          <p className="mt-1.5 text-xs text-neutral-600">Lower numbers appear first in listings.</p>
-
-          {!isNew && brand && brand.productCount !== undefined && (
-            <p className="mt-4 text-xs text-neutral-500">
-              {brand.productCount} product{brand.productCount === 1 ? "" : "s"} linked
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="mt-5 w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50"
-          >
-            {saving ? "Saving…" : isNew ? "Create brand" : "Update brand"}
-          </button>
-        </div>
-      </div>
+        </StorefrontField>
+        {!isNew && brand && brand.productCount !== undefined && (
+          <p className="text-xs text-neutral-500">
+            {brand.productCount} product{brand.productCount === 1 ? "" : "s"} linked
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50"
+        >
+          {saving ? "Saving…" : isNew ? "Create brand" : "Update brand"}
+        </button>
+      </StorefrontSection>
     </form>
   );
 }

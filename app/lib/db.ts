@@ -17,13 +17,21 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
+/** Hot reload can keep an old Prisma client missing newly added models. */
+function isStalePrismaClient(client: PrismaClient): boolean {
+  return typeof (client as PrismaClient & { contentPost?: unknown }).contentPost === "undefined";
+}
+
 /** Lazy Prisma client — only connects when DATABASE_URL is set. */
 export function getPrisma(): PrismaClient | null {
   if (!process.env.DATABASE_URL) {
     return null;
   }
 
-  if (!globalForPrisma.prisma) {
+  if (!globalForPrisma.prisma || isStalePrismaClient(globalForPrisma.prisma)) {
+    if (globalForPrisma.prisma) {
+      void globalForPrisma.prisma.$disconnect();
+    }
     globalForPrisma.prisma = createPrismaClient();
   }
 

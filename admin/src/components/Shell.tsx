@@ -8,18 +8,43 @@ import {
   Tag,
   Layers,
   ExternalLink,
+  Users,
+  Sparkles,
+  Settings,
+  HelpCircle,
+  Search,
+  Globe,
+  Newspaper,
+  BookOpen,
 } from "lucide-react";
 import { clearToken } from "../lib/api";
 
 const commerceNav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/orders", label: "Orders", icon: ShoppingBag },
+  { to: "/customers", label: "Customers", icon: Users },
 ] as const;
 
 const catalogNav = [
   { to: "/products", label: "Products", icon: Package },
   { to: "/brands", label: "Brands", icon: Tag },
   { to: "/categories", label: "Categories", icon: Layers },
+] as const;
+
+const storefrontNav = [
+  { to: "/featured", label: "Featured", icon: Sparkles },
+  { to: "/settings", label: "Site settings", icon: Settings },
+  { to: "/faq", label: "FAQ", icon: HelpCircle },
+] as const;
+
+const seoNav = [
+  { to: "/seo", label: "Overview", icon: Search, end: true },
+  { to: "/seo/global", label: "Global SEO", icon: Globe },
+] as const;
+
+const contentNav = [
+  { to: "/content/blog", label: "Blog posts", icon: Newspaper },
+  { to: "/content/articles", label: "Articles", icon: BookOpen },
 ] as const;
 
 export default function Shell() {
@@ -77,6 +102,79 @@ export default function Shell() {
             </p>
             <div className="space-y-0.5">
               {catalogNav.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-[#00e599]/10 text-[#00e599]"
+                        : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
+                    }`
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+              Storefront
+            </p>
+            <div className="space-y-0.5">
+              {storefrontNav.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-[#00e599]/10 text-[#00e599]"
+                        : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
+                    }`
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+              SEO
+            </p>
+            <div className="space-y-0.5">
+              {seoNav.map(({ to, label, icon: Icon, ...rest }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={"end" in rest ? rest.end : false}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "bg-[#00e599]/10 text-[#00e599]"
+                        : "text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200"
+                    }`
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+              Content
+            </p>
+            <div className="space-y-0.5">
+              {contentNav.map(({ to, label, icon: Icon }) => (
                 <NavLink
                   key={to}
                   to={to}

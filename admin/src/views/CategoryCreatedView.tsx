@@ -34,8 +34,9 @@ export default function CategoryCreatedView({ entityId }: Props) {
       createAnotherPath="/categories/new"
       rows={[
         { label: "ID", value: `#${category.id}`, mono: true },
+        { label: "Name", value: category.label, sentenceCase: true },
         { label: "Slug", value: category.slug, mono: true },
-        { label: "Nav label", value: category.navLabel },
+        { label: "Meta title", value: category.navLabel, sentenceCase: true },
         { label: "Description", value: category.description },
         { label: "Sort order", value: String(category.sortOrder) },
         { label: "Subcategories", value: String(category.subcategoryCount ?? 0) },

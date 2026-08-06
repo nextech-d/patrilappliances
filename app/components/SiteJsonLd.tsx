@@ -1,26 +1,29 @@
-import { SITE } from "../config/site";
 import { absoluteUrl, getSiteUrl } from "../lib/seo";
+import { getSeoContext } from "../lib/seo.server";
 
-export default function SiteJsonLd() {
+export default async function SiteJsonLd() {
+  const ctx = await getSeoContext();
+  const siteUrl = getSiteUrl();
+
   const data = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Organization",
-        "@id": `${getSiteUrl()}/#organization`,
-        name: SITE.name,
-        url: getSiteUrl(),
-        email: SITE.email,
-        telephone: SITE.phone,
-        areaServed: SITE.region,
+        "@id": `${siteUrl}/#organization`,
+        name: ctx.siteName,
+        url: siteUrl,
+        email: ctx.site.email,
+        telephone: ctx.site.phone,
+        areaServed: ctx.site.region,
       },
       {
         "@type": "WebSite",
-        "@id": `${getSiteUrl()}/#website`,
-        url: getSiteUrl(),
-        name: SITE.name,
-        description: SITE.tagline,
-        publisher: { "@id": `${getSiteUrl()}/#organization` },
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: ctx.siteName,
+        description: ctx.site.tagline,
+        publisher: { "@id": `${siteUrl}/#organization` },
         potentialAction: {
           "@type": "SearchAction",
           target: `${absoluteUrl("/search")}?q={search_term_string}`,

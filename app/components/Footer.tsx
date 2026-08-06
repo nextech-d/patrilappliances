@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { categoryHref } from "../data/categories";
 import { getAllCategories } from "../lib/categories.server";
-import { SITE } from "../config/site";
+import { getSiteSettingsData } from "../lib/storefront.server";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 import { Mail, Phone } from "lucide-react";
 import {
@@ -21,7 +21,7 @@ const PAYMENT_METHODS = [
 ] as const;
 
 export default async function Footer() {
-  const categories = await getAllCategories();
+  const [categories, site] = await Promise.all([getAllCategories(), getSiteSettingsData()]);
 
   return (
     <footer className="mt-auto border-t border-neutral-200 bg-[var(--bg)]">
@@ -29,17 +29,17 @@ export default async function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="text-lg font-black uppercase tracking-tighter text-black">
-              {SITE.name}
+              {site.name}
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-black/70">
-              {SITE.tagline}. Serving {SITE.city} and {SITE.region}.
+              {site.tagline}. Serving {site.city} and {site.region}.
             </p>
             <div className="mt-4 space-y-2 text-xs">
-              <a href={`tel:${SITE.phone.replace(/\s/g, "")}`} className="flex items-center gap-2 text-black/70 hover:text-black">
-                <Phone className="h-3.5 w-3.5" /> {SITE.phone}
+              <a href={`tel:${site.phone.replace(/\s/g, "")}`} className="flex items-center gap-2 text-black/70 hover:text-black">
+                <Phone className="h-3.5 w-3.5" /> {site.phone}
               </a>
-              <a href={`mailto:${SITE.email}`} className="flex items-center gap-2 text-black/70 hover:text-black">
-                <Mail className="h-3.5 w-3.5" /> {SITE.email}
+              <a href={`mailto:${site.email}`} className="flex items-center gap-2 text-black/70 hover:text-black">
+                <Mail className="h-3.5 w-3.5" /> {site.email}
               </a>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default async function Footer() {
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <a
-                href={buildWhatsAppUrl("Hi, I'd like to speak with Patril.")}
+                href={buildWhatsAppUrl("Hi, I'd like to speak with Patril.", site.whatsapp)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-full bg-emerald-600 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-emerald-700"
@@ -82,7 +82,7 @@ export default async function Footer() {
                 WhatsApp Us
               </a>
               <a
-                href={SITE.social.facebook}
+                href={site.facebookUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-full bg-blue-600 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-blue-700"
@@ -90,7 +90,7 @@ export default async function Footer() {
                 Facebook
               </a>
               <a
-                href={SITE.social.instagram}
+                href={site.instagramUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition hover:opacity-90"
@@ -98,7 +98,7 @@ export default async function Footer() {
                 Instagram
               </a>
               <a
-                href={SITE.social.tiktok}
+                href={site.tiktokUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-full bg-neutral-900 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-black"
@@ -111,7 +111,7 @@ export default async function Footer() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-neutral-200 pt-6 sm:flex-row">
           <p className="text-[10px] font-semibold text-black/50">
-            © {new Date().getFullYear()} {SITE.name}. All rights reserved.
+            © {new Date().getFullYear()} {site.name}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {PAYMENT_METHODS.map(({ label, Logo, className }) => (

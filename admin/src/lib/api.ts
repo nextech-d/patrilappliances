@@ -28,10 +28,19 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   }
 
   const res = await fetch(`${base}${path}`, { ...options, headers });
-  const data = (await res.json()) as T & { success?: boolean; message?: string };
+
+  const raw = await res.text();
+  let data: T & { success?: boolean; message?: string };
+  try {
+    data = JSON.parse(raw) as T & { success?: boolean; message?: string };
+  } catch {
+    throw new Error(
+      raw.trim().slice(0, 120) || `Request failed (${res.status}). Is the API running on port 4000?`
+    );
+  }
 
   if (!res.ok) {
-    throw new Error((data as { message?: string }).message ?? `Request failed (${res.status})`);
+    throw new Error(data.message ?? `Request failed (${res.status})`);
   }
 
   return data;

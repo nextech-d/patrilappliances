@@ -7,6 +7,8 @@ import {
   APPLIANCES_INVENTORY,
   FEATURED_PRODUCT_COLUMNS,
 } from "../app/data/products";
+import { FAQ_LIST } from "../app/data/faq";
+import { SITE } from "../app/config/site";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -136,6 +138,41 @@ async function main() {
         bottomProductId: column.bottomId ?? null,
       },
     });
+  }
+
+  console.log("Seeding site settings…");
+  const siteDefaults: Record<string, string> = {
+    name: SITE.name,
+    tagline: SITE.tagline,
+    email: SITE.email,
+    phone: SITE.phone,
+    whatsapp: SITE.whatsapp,
+    region: SITE.region,
+    city: SITE.city,
+    facebook_url: SITE.social.facebook,
+    instagram_url: SITE.social.instagram,
+    tiktok_url: SITE.social.tiktok,
+  };
+  for (const [key, value] of Object.entries(siteDefaults)) {
+    await prisma.siteSetting.upsert({
+      where: { key },
+      create: { key, value },
+      update: { value },
+    });
+  }
+
+  console.log("Seeding FAQ…");
+  const faqCount = await prisma.faqItem.count();
+  if (faqCount === 0) {
+    for (const [index, item] of FAQ_LIST.entries()) {
+      await prisma.faqItem.create({
+        data: {
+          question: item.q,
+          answer: item.a,
+          sortOrder: index,
+        },
+      });
+    }
   }
 
   console.log("Seed complete.");

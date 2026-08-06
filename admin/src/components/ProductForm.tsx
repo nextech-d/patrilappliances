@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Settings2, FileText } from "lucide-react";
 import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
+import {
+  StorefrontField,
+  StorefrontSection,
+  storefrontInputClass,
+  storefrontSelectClass,
+} from "./StorefrontPanel";
 import type {
   AdminProductDetail,
   BrandOption,
@@ -68,11 +75,6 @@ export default function ProductForm({
   const [mainImage, setMainImage] = useState(initialMainImage(product));
   const [secondaryImages, setSecondaryImages] = useState(initialSecondaryImages(product));
 
-  const inputClass =
-    "w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none";
-  const labelClass =
-    "mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-neutral-500";
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -124,7 +126,7 @@ export default function ProductForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-5xl space-y-6">
+    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
       {error && (
         <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
           {error}
@@ -132,87 +134,83 @@ export default function ProductForm({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <div className="space-y-5 rounded-xl border border-[#262626] bg-[#111111] p-6 md:p-8">
-          <div>
-            <label className={labelClass}>Name *</label>
+        <StorefrontSection
+          title="Product content"
+          description="Name, SEO, description, and images for the storefront product page."
+          icon={FileText}
+          accent="green"
+        >
+          <StorefrontField label="Name">
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={inputClass}
+              className={storefrontInputClass}
             />
-          </div>
-
-          <div>
-            <label className={labelClass}>Meta title</label>
+          </StorefrontField>
+          <StorefrontField label="Meta title">
             <input
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
               placeholder="SEO page title (defaults to product name)"
-              className={inputClass}
+              className={storefrontInputClass}
             />
-          </div>
-
-          <div>
-            <label className={labelClass}>Meta description</label>
+          </StorefrontField>
+          <StorefrontField label="Meta description" hint={`${metaDescription.length} characters`}>
             <textarea
               rows={3}
               value={metaDescription}
               onChange={(e) => setMetaDescription(e.target.value)}
-              placeholder="Short summary for search results (~155 characters)"
-              className={inputClass}
+              placeholder="Short summary for search results"
+              className={storefrontInputClass}
             />
-            <p className="mt-1 text-[10px] text-neutral-600">{metaDescription.length} characters</p>
-          </div>
-
-          <div>
-            <label className={labelClass}>Description *</label>
+          </StorefrontField>
+          <StorefrontField label="Description">
             <textarea
               required
-              rows={10}
+              rows={8}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={inputClass}
+              className={storefrontInputClass}
             />
-          </div>
-
+          </StorefrontField>
           <ProductImageField
             label="Main image"
             required={isPublished}
             value={mainImage}
             onChange={setMainImage}
             hint={
-              isPublished
-                ? undefined
-                : "Optional for drafts — required before publishing."
+              isPublished ? undefined : "Optional for drafts — required before publishing."
             }
           />
-
           <ProductGalleryField
             label="Secondary images"
             value={secondaryImages}
             onChange={setSecondaryImages}
           />
-        </div>
+        </StorefrontSection>
 
-        <aside className="space-y-5 rounded-xl border border-[#262626] bg-[#111111] p-6 lg:sticky lg:top-8">
-          <div>
-            <label className={labelClass}>Slug (optional)</label>
+        <StorefrontSection
+          title="Catalog settings"
+          description="Pricing, stock, visibility, and categorization."
+          icon={Settings2}
+          accent="sky"
+          className="lg:sticky lg:top-8"
+        >
+          <StorefrontField label="Slug" hint="Auto-generated from name if empty.">
             <input
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder="auto-generated from name"
-              className={inputClass}
+              className={`${storefrontInputClass} font-mono text-xs`}
             />
-          </div>
-
-          <div>
-            <label className={labelClass}>Brand *</label>
+          </StorefrontField>
+          <StorefrontField label="Brand">
             <select
               required
               value={brandId}
               onChange={(e) => setBrandId(Number(e.target.value))}
-              className={inputClass}
+              className={storefrontSelectClass}
             >
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -220,15 +218,13 @@ export default function ProductForm({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className={labelClass}>Subcategory *</label>
+          </StorefrontField>
+          <StorefrontField label="Subcategory">
             <select
               required
               value={subcategoryId}
               onChange={(e) => setSubcategoryId(Number(e.target.value))}
-              className={inputClass}
+              className={storefrontSelectClass}
             >
               {subcategories.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -236,26 +232,22 @@ export default function ProductForm({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className={labelClass}>Price (KES) *</label>
+          </StorefrontField>
+          <StorefrontField label="Price (KES)">
             <input
               required
               type="number"
               min={0}
               value={priceKes}
               onChange={(e) => setPriceKes(e.target.value)}
-              className={inputClass}
+              className={storefrontInputClass}
             />
-          </div>
-
-          <div>
-            <label className={labelClass}>Stock status</label>
+          </StorefrontField>
+          <StorefrontField label="Stock status">
             <select
               value={stockStatus}
               onChange={(e) => setStockStatus(e.target.value as StockStatus)}
-              className={inputClass}
+              className={storefrontSelectClass}
             >
               {STOCK_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -263,9 +255,16 @@ export default function ProductForm({
                 </option>
               ))}
             </select>
-          </div>
-
-          <label className="flex items-center gap-2 text-xs text-neutral-400">
+          </StorefrontField>
+          <StorefrontField label="Specs">
+            <input
+              value={specs}
+              onChange={(e) => setSpecs(e.target.value)}
+              placeholder="Convection • AI Assist • Matte Black"
+              className={storefrontInputClass}
+            />
+          </StorefrontField>
+          <label className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#111111] px-3.5 py-3 text-xs text-neutral-400">
             <input
               type="checkbox"
               checked={isPublished}
@@ -274,27 +273,14 @@ export default function ProductForm({
             />
             Published on storefront
           </label>
-
-          <div>
-            <label className={labelClass}>Specs</label>
-            <input
-              value={specs}
-              onChange={(e) => setSpecs(e.target.value)}
-              placeholder="Convection • AI Assist • Matte Black"
-              className={inputClass}
-            />
-          </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-[#00e599] px-8 py-3 text-xs font-bold uppercase tracking-widest text-black hover:bg-[#00cc88] disabled:opacity-50"
-            >
-              {loading ? "Saving…" : isEdit ? "Update product" : "Create product"}
-            </button>
-          </div>
-        </aside>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50"
+          >
+            {loading ? "Saving…" : isEdit ? "Update product" : "Create product"}
+          </button>
+        </StorefrontSection>
       </div>
     </form>
   );

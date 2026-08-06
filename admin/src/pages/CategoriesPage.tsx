@@ -2,10 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Search, RefreshCw, Plus, ExternalLink, Pencil, Trash2, Layers, ChevronRight } from "lucide-react";
 import { api, STORE_URL } from "../lib/api";
-import { cardFooter, cardInner, cardInnerEmpty, cardInnerHover, cardOuter } from "../lib/cardSurfaces";
-import { SectionHeading, StatCardSkeleton } from "../components/StatCard";
+import { cardFooter, cardInner, cardInnerEmpty, cardInnerHover } from "../lib/cardSurfaces";
+import {
+  accentAt,
+  CatalogEntityCard,
+  CatalogStatTile,
+  StorefrontField,
+  StorefrontSection,
+  storefrontInputClass,
+} from "../components/StorefrontPanel";
 import CategoryCreatedView from "../views/CategoryCreatedView";
-import SubcategoryCreatedView from "../views/SubcategoryCreatedView";
 
 type Subcategory = {
   id: number;
@@ -37,13 +43,9 @@ type Summary = {
 export default function CategoriesPage() {
   const [searchParams] = useSearchParams();
   const createdId = searchParams.get("created");
-  const createdSubId = searchParams.get("createdSub");
 
   if (createdId) {
     return <CategoryCreatedView entityId={createdId} />;
-  }
-  if (createdSubId) {
-    return <SubcategoryCreatedView entityId={createdSubId} />;
   }
 
   return <CategoriesListPage />;
@@ -51,7 +53,7 @@ export default function CategoriesPage() {
 
 function CategoryCardSkeleton() {
   return (
-    <div className={`flex h-full flex-col animate-pulse rounded-xl p-3 ${cardOuter}`}>
+    <div className="flex h-full flex-col animate-pulse rounded-xl border border-[#333] bg-[#161616] p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 space-y-1.5">
           <div className="h-3 w-24 rounded bg-[#333]" />
@@ -74,13 +76,15 @@ function CategoryCard({
   category,
   onDelete,
   deleting,
+  accentIndex,
 }: {
   category: Category;
   onDelete: () => void;
   deleting: boolean;
+  accentIndex: number;
 }) {
   return (
-    <div className={`flex h-full flex-col rounded-xl p-3 ${cardOuter}`}>
+    <CatalogEntityCard accent={accentAt(accentIndex)} className="flex h-full flex-col p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <Link
@@ -127,26 +131,13 @@ function CategoryCard({
             </ul>
           </div>
         ) : (
-          <div className={`rounded-md px-2 py-2 text-center ${cardInnerEmpty}`}>
-            <Link
-              to={`/subcategories/new?categoryId=${category.id}`}
-              className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-[#00e599] hover:underline"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add subcategory
-            </Link>
+          <div className={`rounded-md px-2 py-2 text-center text-[9px] text-neutral-600 ${cardInnerEmpty}`}>
+            No subcategories
           </div>
         )}
       </div>
 
-      <div className={`mt-auto flex items-center justify-between gap-2 pt-2 ${cardFooter}`}>
-        <Link
-          to={`/subcategories/new?categoryId=${category.id}`}
-          className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-neutral-500 hover:text-[#00e599]"
-        >
-          <Plus className="h-2.5 w-2.5" />
-          Add
-        </Link>
+      <div className={`mt-auto flex items-center justify-end gap-2 pt-2 ${cardFooter}`}>
         <div className="flex items-center gap-2">
           <a
             href={`${STORE_URL}/category/${category.slug}`}
@@ -175,7 +166,7 @@ function CategoryCard({
           </button>
         </div>
       </div>
-    </div>
+    </CatalogEntityCard>
   );
 }
 
@@ -288,13 +279,6 @@ function CategoriesListPage() {
             Refresh
           </button>
           <Link
-            to="/subcategories/new"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#00e599]/30 bg-[#00e599]/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/15"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add subcategory
-          </Link>
-          <Link
             to="/categories/new"
             className="inline-flex items-center gap-2 rounded-lg bg-[#00e599] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-black hover:bg-[#00cc88]"
           >
@@ -304,60 +288,51 @@ function CategoriesListPage() {
         </div>
       </div>
 
-      <section className="mt-6">
-        <SectionHeading title="Overview" description="Categories and subcategories in your catalog" />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <StorefrontSection
+        className="mt-6"
+        title="Overview"
+        description="Categories and subcategories in your catalog"
+        icon={Layers}
+        accent="green"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {loading && !summary ? (
             <>
-              <StatCardSkeleton />
-              <StatCardSkeleton />
+              <div className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616]" />
+              <div className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616]" />
+              <div className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616] sm:col-span-2 lg:col-span-1" />
             </>
           ) : (
             <>
-              <div className={`rounded-xl p-5 ${cardOuter}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                      Categories
-                    </p>
-                    <p className="mt-2 text-2xl font-bold tabular-nums text-white">
-                      {summary?.totalCategories ?? 0}
-                    </p>
+              <CatalogStatTile
+                label="Categories"
+                value={summary?.totalCategories ?? 0}
+                icon={Layers}
+                accent="green"
+              />
+              <CatalogStatTile
+                label="Subcategories"
+                value={summary?.totalSubcategories ?? 0}
+                icon={Layers}
+                accent="sky"
+              />
+              <form onSubmit={handleSearch} className="sm:col-span-2 lg:col-span-1">
+                <StorefrontField label="Search">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                    <input
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      placeholder="Search categories, subcategories, slugs…"
+                      className={`${storefrontInputClass} pl-10`}
+                    />
                   </div>
-                  <div className="shrink-0 rounded-lg bg-[#00e599]/10 p-2 text-[#00e599]">
-                    <Layers className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-              <div className={`rounded-xl p-5 ${cardOuter}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                      Subcategories
-                    </p>
-                    <p className="mt-2 text-2xl font-bold tabular-nums text-white">
-                      {summary?.totalSubcategories ?? 0}
-                    </p>
-                  </div>
-                  <div className="shrink-0 rounded-lg bg-[#00e599]/10 p-2 text-[#00e599]">
-                    <Layers className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
+                </StorefrontField>
+              </form>
             </>
           )}
         </div>
-      </section>
-
-      <form onSubmit={handleSearch} className="relative mt-6 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
-        <input
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search categories, subcategories, slugs…"
-          className="w-full rounded-lg border border-[#333] bg-[#111] py-2 pl-10 pr-4 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none"
-        />
-      </form>
+      </StorefrontSection>
 
       {error && (
         <p className="mt-4 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
@@ -365,16 +340,18 @@ function CategoriesListPage() {
         </p>
       )}
 
-      <section className="mt-6">
-        <SectionHeading
-          title="All categories"
-          description={
-            summary
-              ? `${summary.filteredCategories} of ${summary.totalCategories} shown`
-              : undefined
-          }
-        />
-
+      <StorefrontSection
+        className="mt-6"
+        title="All categories"
+        description={
+          summary
+            ? `${summary.filteredCategories} of ${summary.totalCategories} shown`
+            : "Browse and manage your category tree"
+        }
+        icon={Layers}
+        accent="amber"
+        badge={summary ? String(summary.filteredCategories) : undefined}
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <CategoryCardSkeleton key={i} />)
@@ -383,17 +360,18 @@ function CategoriesListPage() {
               No categories match your search.
             </div>
           ) : (
-            categories.map((category) => (
+            categories.map((category, index) => (
               <CategoryCard
                 key={category.id}
                 category={category}
+                accentIndex={index}
                 deleting={deletingCategoryId === category.id}
                 onDelete={() => handleDeleteCategory(category)}
               />
             ))
           )}
         </div>
-      </section>
+      </StorefrontSection>
     </div>
   );
 }

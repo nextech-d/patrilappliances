@@ -1,25 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { api } from "../lib/api";
 import SubcategoryForm, { type SubcategoryDetail } from "../components/SubcategoryForm";
-import SubcategoryCreatedView from "../views/SubcategoryCreatedView";
 
 export default function SubcategoryEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isNew = !id || id === "new";
-  const defaultCategoryId = Number(searchParams.get("categoryId")) || undefined;
 
   const [subcategory, setSubcategory] = useState<SubcategoryDetail | undefined>();
-  const [createdId, setCreatedId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isNew) return;
-
     async function load() {
       try {
         const data = await api<{ subcategory: SubcategoryDetail }>(
@@ -33,11 +26,7 @@ export default function SubcategoryEditPage() {
       }
     }
     load();
-  }, [id, isNew]);
-
-  if (createdId) {
-    return <SubcategoryCreatedView entityId={String(createdId)} />;
-  }
+  }, [id]);
 
   if (loading) {
     return <div className="p-8 text-sm text-neutral-500">Loading…</div>;
@@ -58,7 +47,7 @@ export default function SubcategoryEditPage() {
     );
   }
 
-  if (!isNew && !subcategory) {
+  if (!subcategory) {
     return (
       <div className="p-8 text-sm text-neutral-500">
         Subcategory not found.{" "}
@@ -79,26 +68,15 @@ export default function SubcategoryEditPage() {
         Categories
       </Link>
 
-      <h1 className="text-xl font-semibold text-white">
-        {isNew ? "Add subcategory" : "Edit subcategory"}
-      </h1>
-      {!isNew && subcategory ? (
-        <div className="mt-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-            {subcategory.categoryLabel}
-          </p>
-          <p className="mt-1 text-sm text-white">{subcategory.label}</p>
-        </div>
-      ) : (
-        <p className="mt-1 text-sm text-neutral-500">Create a new subcategory</p>
-      )}
+      <h1 className="text-xl font-semibold text-white">Edit subcategory</h1>
+      <div className="mt-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+          {subcategory.categoryLabel}
+        </p>
+        <p className="mt-1 text-sm text-white">{subcategory.label}</p>
+      </div>
 
-      <SubcategoryForm
-        subcategory={subcategory}
-        mode={isNew ? "create" : "edit"}
-        onCreated={setCreatedId}
-        defaultCategoryId={defaultCategoryId}
-      />
+      <SubcategoryForm subcategory={subcategory} mode="edit" />
     </div>
   );
 }

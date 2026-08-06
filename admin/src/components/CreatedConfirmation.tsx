@@ -5,6 +5,7 @@ export type SummaryRow = {
   label: string;
   value: React.ReactNode;
   mono?: boolean;
+  sentenceCase?: boolean;
 };
 
 type Props = {
@@ -17,11 +18,19 @@ type Props = {
   rows: SummaryRow[];
 };
 
-export function SummaryField({ label, value, mono }: SummaryRow) {
+export function SummaryField({ label, value, mono, sentenceCase }: SummaryRow) {
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className="grid gap-1 border-b border-[#262626] py-3 last:border-0 sm:grid-cols-[140px_1fr] sm:gap-4">
-      <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">{label}</dt>
+      <dt
+        className={
+          sentenceCase
+            ? "text-xs font-medium text-neutral-500"
+            : "text-[10px] font-bold uppercase tracking-wider text-neutral-500"
+        }
+      >
+        {label}
+      </dt>
       <dd className={`text-sm text-neutral-200 ${mono ? "font-mono text-xs text-neutral-400" : ""}`}>
         {value}
       </dd>

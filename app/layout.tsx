@@ -7,10 +7,12 @@ import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import CartToast from "./components/CartToast";
 import SiteJsonLd from "./components/SiteJsonLd";
+import FaqJsonLd from "./components/FaqJsonLd";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
-import { rootMetadata } from "./lib/seo";
+import { StorefrontProvider } from "./context/StorefrontContext";
+import { buildRootMetadataFromContext } from "./lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +24,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = rootMetadata;
+export async function generateMetadata(): Promise<Metadata> {
+  return buildRootMetadataFromContext();
+}
 
 export default function RootLayout({
   children,
@@ -33,14 +37,17 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
         <SiteJsonLd />
+        <FaqJsonLd />
         <CartProvider>
           <ProductsProvider>
             <CategoriesProvider>
-              <Header />
-              <CartDrawer />
-              <CartToast />
-              <main className="flex-grow">{children}</main>
-              <Footer />
+              <StorefrontProvider>
+                <Header />
+                <CartDrawer />
+                <CartToast />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+              </StorefrontProvider>
             </CategoriesProvider>
           </ProductsProvider>
         </CartProvider>

@@ -19,15 +19,19 @@ type PageMetadataInput = {
   path?: string;
   image?: string;
   noIndex?: boolean;
+  siteName?: string;
+  defaultOgImage?: string;
 };
 
 export function buildPageMetadata(input: PageMetadataInput): Metadata {
-  const title = input.title.includes(SITE.name)
+  const siteName = input.siteName ?? SITE.name;
+  const title = input.title.includes(siteName)
     ? input.title
-    : `${input.title} | ${SITE.name}`;
+    : `${input.title} | ${siteName}`;
   const canonical = input.path ? absoluteUrl(input.path) : getSiteUrl();
-  const ogImage = input.image
-    ? [{ url: input.image, width: 600, height: 600, alt: input.title }]
+  const imageUrl = input.image ?? input.defaultOgImage;
+  const ogImage = imageUrl
+    ? [{ url: imageUrl, width: 600, height: 600, alt: input.title }]
     : undefined;
 
   return {
@@ -41,16 +45,16 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
       title,
       description: input.description,
       url: canonical,
-      siteName: SITE.name,
+      siteName,
       locale: "en_KE",
       type: "website",
       ...(ogImage && { images: ogImage }),
     },
     twitter: {
-      card: input.image ? "summary_large_image" : "summary",
+      card: imageUrl ? "summary_large_image" : "summary",
       title,
       description: input.description,
-      ...(input.image && { images: [input.image] }),
+      ...(imageUrl && { images: [imageUrl] }),
     },
   };
 }
@@ -84,6 +88,36 @@ export const rootMetadata: Metadata = {
     telephone: false,
   },
 };
+
+export async function buildRootMetadataFromContext(): Promise<Metadata> {
+  const { getSeoContext } = await import("./seo.server");
+  const ctx = await getSeoContext();
+
+  const metadata: Metadata = {
+    metadataBase: new URL(getSiteUrl()),
+    ...buildPageMetadata({
+      title: ctx.homepageTitle,
+      description: ctx.homepageDescription,
+      path: "/",
+      siteName: ctx.siteName,
+      defaultOgImage: ctx.defaultOgImage,
+    }),
+    keywords: siteKeywords,
+    authors: [{ name: ctx.siteName }],
+    creator: ctx.siteName,
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+  };
+
+  if (ctx.googleSiteVerification) {
+    metadata.verification = { google: ctx.googleSiteVerification };
+  }
+
+  return metadata;
+}
 
 export const noIndexMetadata: Metadata = {
   robots: { index: false, follow: false },

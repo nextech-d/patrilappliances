@@ -167,6 +167,7 @@ export async function listProductsFiltered(
   ]);
 
   const q = filters.q?.trim();
+  const idQuery = q && /^#?\d+$/.test(q) ? Number(q.replace(/^#/, "")) : null;
   const where = {
     ...(filters.stockStatus ? { stockStatus: filters.stockStatus } : {}),
     ...(filters.published !== undefined ? { isPublished: filters.published } : {}),
@@ -175,6 +176,7 @@ export async function listProductsFiltered(
     ...(q
       ? {
           OR: [
+            ...(idQuery !== null ? [{ id: idQuery }] : []),
             { name: { contains: q, mode: "insensitive" as const } },
             { slug: { contains: q, mode: "insensitive" as const } },
             { brand: { name: { contains: q, mode: "insensitive" as const } } },

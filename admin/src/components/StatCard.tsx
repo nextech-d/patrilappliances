@@ -12,7 +12,7 @@ export function SectionHeading({ title, description }: { title: string; descript
 
 export function StatCardSkeleton() {
   return (
-    <div className={`animate-pulse rounded-xl p-5 ${cardOuter}`}>
+    <div className={`animate-pulse rounded-xl p-4 ${cardOuter}`}>
       <div className="h-3 w-20 rounded bg-[#333]" />
       <div className="mt-3 h-8 w-16 rounded bg-[#333]" />
     </div>
@@ -50,7 +50,7 @@ export function StatCard({
   return (
     <Link
       to={href}
-      className={`rounded-xl p-5 ${cardOuter} ${
+      className={`rounded-xl p-4 ${cardOuter} ${
         active ? "border-[#00e599]/40 ring-1 ring-[#00e599]/20" : ""
       }`}
     >

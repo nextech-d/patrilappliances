@@ -14,7 +14,10 @@ import {
 } from "lucide-react";
 import { api, exportOrdersCsv, formatKes, getToken } from "../lib/api";
 import CatalogStatCards from "../components/CatalogStatCards";
-import { SectionHeading, StatCard, StatCardSkeleton } from "../components/StatCard";
+import {
+  CatalogStatTile,
+  StorefrontSection,
+} from "../components/StorefrontPanel";
 
 type OrderStatus = "confirmed" | "preparing" | "shipped" | "delivered" | "cancelled";
 
@@ -146,9 +149,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-[#262626] bg-[#111111] px-4 py-3">
-        <Activity className="h-3.5 w-3.5 text-[#00e599]" />
-        <span className="text-xs text-neutral-400">
+      <StorefrontSection
+        className="mt-6"
+        title="Status"
+        description="API connection and today's activity"
+        icon={Activity}
+        accent="green"
+      >
+        <p className="text-xs text-neutral-400">
           API connected
           {stats && stats.ordersToday > 0 && (
             <>
@@ -156,8 +164,8 @@ export default function DashboardPage() {
               <span className="text-neutral-300">{stats.ordersToday} orders today</span>
             </>
           )}
-        </span>
-      </div>
+        </p>
+      </StorefrontSection>
 
       {error && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3">
@@ -172,59 +180,80 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="space-y-6">
-        <section>
-          <SectionHeading title="Commerce" description="Revenue, orders, and customers" />
+      <div className="mt-6 space-y-6">
+        <CatalogStatCards />
+
+        <StorefrontSection
+          title="Commerce"
+          description="Revenue, orders, and customers"
+          icon={TrendingUp}
+          accent="sky"
+        >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {loading ? (
-              Array.from({ length: 3 }).map((_, i) => <StatCardSkeleton key={i} />)
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616]"
+                />
+              ))
             ) : (
               <>
-                <StatCard
-                  label="Revenue (all time)"
-                  value={formatKes(stats?.revenueTotal ?? 0)}
-                  sub={`Today: ${formatKes(stats?.revenueToday ?? 0)}`}
-                  icon={TrendingUp}
-                  href="/orders"
-                  accent="green"
-                />
-                <StatCard
-                  label="Orders"
-                  value={stats?.orders ?? 0}
-                  sub={`${stats?.ordersToday ?? 0} today · ${stats?.pendingPayments ?? 0} unpaid`}
-                  icon={ShoppingBag}
-                  href="/orders?payment=pending"
-                />
-                <StatCard
-                  label="Customers"
-                  value={stats?.customers ?? 0}
-                  icon={Users}
-                  href="/orders"
-                />
+                <Link to="/orders" className="block hover:opacity-90">
+                  <CatalogStatTile
+                    label="Revenue (all time)"
+                    value={formatKes(stats?.revenueTotal ?? 0)}
+                    sub={`Today: ${formatKes(stats?.revenueToday ?? 0)}`}
+                    icon={TrendingUp}
+                    accent="green"
+                    valueClassName="text-[#00e599] text-xl"
+                  />
+                </Link>
+                <Link to="/orders?payment=pending" className="block hover:opacity-90">
+                  <CatalogStatTile
+                    label="Orders"
+                    value={stats?.orders ?? 0}
+                    sub={`${stats?.ordersToday ?? 0} today · ${stats?.pendingPayments ?? 0} unpaid`}
+                    icon={ShoppingBag}
+                    accent="sky"
+                  />
+                </Link>
+                <Link to="/customers" className="block hover:opacity-90">
+                  <CatalogStatTile
+                    label="Customers"
+                    value={stats?.customers ?? 0}
+                    icon={Users}
+                    accent="violet"
+                  />
+                </Link>
               </>
             )}
           </div>
-        </section>
-
-        <section>
-          <CatalogStatCards />
-        </section>
+        </StorefrontSection>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-[#262626] bg-[#111111] p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-white">Orders — last 7 days</h2>
-          <p className="mt-1 text-xs text-neutral-500">Daily order count</p>
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <StorefrontSection
+          className="lg:col-span-2"
+          title="Orders — last 7 days"
+          description="Daily order count"
+          icon={ShoppingBag}
+          accent="violet"
+        >
           {loading ? (
-            <div className="mt-6 h-32 animate-pulse rounded-lg bg-[#1a1a1a]" />
+            <div className="h-32 animate-pulse rounded-lg bg-[#161616]" />
           ) : data ? (
             <OrdersChart days={data.ordersLast7Days} />
           ) : null}
-        </div>
+        </StorefrontSection>
 
-        <div className="rounded-xl border border-[#262626] bg-[#111111] p-5">
-          <h2 className="text-sm font-semibold text-white">Quick actions</h2>
-          <div className="mt-4 space-y-2">
+        <StorefrontSection
+          title="Quick actions"
+          description="Common admin tasks"
+          icon={Package}
+          accent="amber"
+        >
+          <div className="space-y-2">
             <Link
               to="/products/new"
               className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"
@@ -278,44 +307,49 @@ export default function DashboardPage() {
               Open storefront
             </a>
           </div>
-        </div>
+        </StorefrontSection>
       </div>
 
       {!loading && data && statusEntries.some(([, n]) => n > 0) && (
-        <div className="mt-6 rounded-xl border border-[#262626] bg-[#111111] p-5">
-          <h2 className="text-sm font-semibold text-white">Orders by status</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
+        <StorefrontSection
+          className="mt-6"
+          title="Orders by status"
+          description="Fulfillment pipeline breakdown"
+          icon={ShoppingBag}
+          accent="green"
+        >
+          <div className="flex flex-wrap gap-2">
             {statusEntries.map(([status, count]) => (
               <Link
                 key={status}
                 to="/orders"
-                className="rounded-full border border-[#333] px-3 py-1.5 text-[10px] font-medium text-neutral-400 hover:border-[#00e599]/30 hover:text-[#00e599]"
+                className="rounded-full border border-[#333] bg-[#0a0a0a] px-3 py-1.5 text-[10px] font-medium text-neutral-400 hover:border-[#00e599]/30 hover:text-[#00e599]"
               >
                 {status}{" "}
                 <span className="ml-1 font-bold tabular-nums text-white">{count}</span>
               </Link>
             ))}
           </div>
-        </div>
+        </StorefrontSection>
       )}
 
       {!loading && data && data.catalogCategories.length > 0 && (
-        <div className="mt-6 rounded-xl border border-[#262626] bg-[#111111] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[#262626] px-5 py-4">
-            <div>
-              <h2 className="text-sm font-semibold text-white">Catalog by category</h2>
-              <p className="text-xs text-neutral-500">
-                {stats?.categories ?? 0} categories · {stats?.subcategories ?? 0} subcategories
-              </p>
-            </div>
+        <StorefrontSection
+          className="mt-6"
+          title="Catalog by category"
+          description={`${stats?.categories ?? 0} categories · ${stats?.subcategories ?? 0} subcategories`}
+          icon={Layers}
+          accent="sky"
+          actions={
             <Link
               to="/categories"
               className="text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:underline"
             >
               Manage all
             </Link>
-          </div>
-
+          }
+        >
+          <div className="overflow-hidden rounded-xl border border-[#262626]">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#0a0a0a] text-[10px] uppercase tracking-wider text-neutral-600">
               <tr>
@@ -361,32 +395,37 @@ export default function DashboardPage() {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </StorefrontSection>
       )}
 
-      <div className="mt-6 rounded-xl border border-[#262626] bg-[#111111] overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[#262626] px-5 py-4">
-          <div>
-            <h2 className="text-sm font-semibold text-white">Recent orders</h2>
-            <p className="text-xs text-neutral-500">Latest 5 placed</p>
-          </div>
+      <StorefrontSection
+        className="mt-6"
+        title="Recent orders"
+        description="Latest 5 placed"
+        icon={ShoppingBag}
+        accent="amber"
+        actions={
           <Link
             to="/orders"
             className="text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:underline"
           >
             View all
           </Link>
-        </div>
-
+        }
+      >
         {loading ? (
-          <div className="p-5 space-y-3">
+          <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-10 animate-pulse rounded-lg bg-[#1a1a1a]" />
+              <div key={i} className="h-10 animate-pulse rounded-lg bg-[#161616]" />
             ))}
           </div>
         ) : !data?.recentOrders.length ? (
-          <p className="px-5 py-8 text-center text-sm text-neutral-500">No orders yet.</p>
+          <p className="rounded-xl border border-[#262626] bg-[#0a0a0a] px-5 py-8 text-center text-sm text-neutral-500">
+            No orders yet.
+          </p>
         ) : (
+          <div className="overflow-hidden rounded-xl border border-[#262626]">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#0a0a0a] text-[10px] uppercase tracking-wider text-neutral-600">
               <tr>
@@ -425,8 +464,9 @@ export default function DashboardPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
-      </div>
+      </StorefrontSection>
     </div>
   );
 }

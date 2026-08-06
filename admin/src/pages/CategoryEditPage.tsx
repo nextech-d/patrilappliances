@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import CategoryForm, { type CategoryDetail } from "../components/CategoryForm";
 import CategoryCreatedView from "../views/CategoryCreatedView";
@@ -116,20 +116,12 @@ export default function CategoryEditPage() {
 
       {!isNew && category && (
         <div className="mt-8 rounded-xl border border-[#262626] bg-[#111111] p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-semibold text-white">Subcategories</h2>
-              <p className="mt-1 text-xs text-neutral-500">
-                {category.subcategories?.length ?? 0} under {category.label}
-              </p>
-            </div>
-            <Link
-              to={`/subcategories/new?categoryId=${category.id}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#00e599]/30 bg-[#00e599]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/15"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add subcategory
-            </Link>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Subcategories</h2>
+            <p className="mt-1 text-xs text-neutral-500">
+              {category.subcategories?.length ?? 0} under {category.label}. Subcategories can only be
+              added when creating a category.
+            </p>
           </div>
 
           {category.subcategories && category.subcategories.length > 0 ? (

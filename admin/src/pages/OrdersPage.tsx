@@ -10,8 +10,15 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
+  ShoppingBag,
 } from "lucide-react";
 import { api, exportOrdersCsv, formatKes, STORE_URL } from "../lib/api";
+import {
+  CatalogStatTile,
+  StorefrontSection,
+  storefrontInputClass,
+  storefrontSelectClass,
+} from "../components/StorefrontPanel";
 
 type OrderItem = { id: number; name: string; price: number; qty: number };
 type Order = {
@@ -198,21 +205,7 @@ export default function OrdersPage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-white">Orders</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            {summary ? (
-              <>
-                {summary.filtered} shown · {summary.total} total ·{" "}
-                <span className="text-neutral-400">{summary.pendingPayments} unpaid</span>
-              </>
-            ) : (
-              "Manage delivery and payment status"
-            )}
-          </p>
-          {summary && summary.filtered > 0 && (
-            <p className="mt-1 text-xs text-[#00e599]">
-              Filtered revenue: {formatKes(summary.revenueFiltered)}
-            </p>
-          )}
+          <p className="mt-1 text-sm text-neutral-500">Manage delivery and payment status</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -235,75 +228,132 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
-          <input
-            type="search"
-            placeholder="Search reference, name, email, phone, city…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-lg border border-[#333] bg-[#111111] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none"
-          />
+      <StorefrontSection
+        className="mt-6"
+        title="Overview"
+        description="Order volume and revenue"
+        icon={ShoppingBag}
+        accent="green"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {loading && !summary ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616]"
+              />
+            ))
+          ) : (
+            <>
+              <CatalogStatTile
+                label="Total orders"
+                value={summary?.total ?? 0}
+                icon={ShoppingBag}
+                accent="green"
+              />
+              <CatalogStatTile
+                label="Shown"
+                value={summary?.filtered ?? 0}
+                icon={ShoppingBag}
+                accent="sky"
+              />
+              <CatalogStatTile
+                label="Filtered revenue"
+                value={formatKes(summary?.revenueFiltered ?? 0)}
+                icon={ShoppingBag}
+                accent="violet"
+                valueClassName="text-[#00e599] text-xl"
+              />
+              <CatalogStatTile
+                label="Unpaid"
+                value={summary?.pendingPayments ?? 0}
+                icon={ShoppingBag}
+                accent="amber"
+                valueClassName="text-amber-400"
+              />
+            </>
+          )}
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) =>
-            applyFilters({
-              status: e.target.value,
-              payment: paymentFilter,
-              excludePending: false,
-            })
-          }
-          className="rounded-lg border border-[#333] bg-[#111111] px-3 py-2.5 text-xs text-white"
-        >
-          {STATUS_OPTS.map((o) => (
-            <option key={o.label} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={paymentFilter}
-          onChange={(e) =>
-            applyFilters({
-              status: statusFilter,
-              payment: e.target.value,
-              excludePending: false,
-            })
-          }
-          className="rounded-lg border border-[#333] bg-[#111111] px-3 py-2.5 text-xs text-white"
-        >
-          {PAYMENT_OPTS.map((o) => (
-            <option key={o.label} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      </StorefrontSection>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {QUICK_FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() =>
-              applyFilters({
-                status: f.status,
-                payment: f.payment,
-                excludePending: f.excludePending,
-              })
-            }
-            className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
-              activeQuick === f.key
-                ? "bg-[#00e599]/15 text-[#00e599]"
-                : "border border-[#333] text-neutral-500 hover:text-neutral-300"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <StorefrontSection
+        className="mt-6"
+        title="Filters"
+        description="Quick filters, search, status, and payment."
+        icon={Search}
+        accent="violet"
+      >
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {QUICK_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() =>
+                  applyFilters({
+                    status: f.status,
+                    payment: f.payment,
+                    excludePending: f.excludePending,
+                  })
+                }
+                className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+                  activeQuick === f.key
+                    ? "bg-[#00e599]/15 text-[#00e599]"
+                    : "bg-[#111] text-neutral-500 hover:text-neutral-300"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[200px] flex-1 max-w-lg">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+              <input
+                type="search"
+                placeholder="Search reference, name, email, phone, city…"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className={`${storefrontInputClass} pl-10`}
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                applyFilters({
+                  status: e.target.value,
+                  payment: paymentFilter,
+                  excludePending: false,
+                })
+              }
+              className={`${storefrontSelectClass} w-full min-w-[140px] max-w-xs sm:w-44`}
+            >
+              {STATUS_OPTS.map((o) => (
+                <option key={o.label} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={paymentFilter}
+              onChange={(e) =>
+                applyFilters({
+                  status: statusFilter,
+                  payment: e.target.value,
+                  excludePending: false,
+                })
+              }
+              className={`${storefrontSelectClass} w-full min-w-[140px] max-w-xs sm:w-44`}
+            >
+              {PAYMENT_OPTS.map((o) => (
+                <option key={o.label} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </StorefrontSection>
 
       {error && (
         <div className="mb-4 flex items-center justify-between rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3">
@@ -315,19 +365,45 @@ export default function OrdersPage() {
       )}
 
       {loading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-[#111111]" />
-          ))}
-        </div>
+        <StorefrontSection
+          className="mt-6"
+          title="All orders"
+          description="Loading orders…"
+          icon={ShoppingBag}
+          accent="amber"
+        >
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-[#161616]" />
+            ))}
+          </div>
+        </StorefrontSection>
       ) : orders.length === 0 ? (
-        <p className="rounded-xl border border-[#262626] bg-[#111111] p-10 text-center text-sm text-neutral-500">
-          {searchInput || statusFilter || paymentFilter
-            ? "No orders match your filters."
-            : "No orders yet."}
-        </p>
+        <StorefrontSection
+          className="mt-6"
+          title="All orders"
+          description="No matching orders"
+          icon={ShoppingBag}
+          accent="amber"
+        >
+          <p className="rounded-xl border border-[#262626] bg-[#0a0a0a] p-10 text-center text-sm text-neutral-500">
+            {searchInput || statusFilter || paymentFilter
+              ? "No orders match your filters."
+              : "No orders yet."}
+          </p>
+        </StorefrontSection>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[#262626]">
+        <StorefrontSection
+          className="mt-6"
+          title="All orders"
+          description={
+            summary ? `${summary.filtered} of ${summary.total} shown` : "Browse and manage orders"
+          }
+          icon={ShoppingBag}
+          accent="amber"
+          badge={summary ? String(summary.filtered) : undefined}
+        >
+          <div className="overflow-hidden rounded-xl border border-[#262626]">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#111111] text-[10px] uppercase tracking-wider text-neutral-600">
               <tr>
@@ -404,7 +480,8 @@ export default function OrdersPage() {
               })}
             </tbody>
           </table>
-        </div>
+          </div>
+        </StorefrontSection>
       )}
     </div>
   );

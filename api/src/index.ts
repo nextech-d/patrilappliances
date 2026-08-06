@@ -10,7 +10,12 @@ import { adminProductsRoute } from "./routes/admin/products.js";
 import { adminCatalogRoute } from "./routes/admin/catalog.js";
 import { adminDashboardRoute } from "./routes/admin/dashboard.js";
 import { adminUploadsRoute } from "./routes/admin/uploads.js";
+import { adminStorefrontRoute } from "./routes/admin/storefront.js";
+import { adminCustomersRoute } from "./routes/admin/customers.js";
+import { adminSeoRoute } from "./routes/admin/seo.js";
+import { adminContentRoute } from "./routes/admin/content.js";
 import { catalogRoute } from "./routes/catalog.js";
+import { storefrontRoute } from "./routes/storefront.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
 
 loadEnv({ path: ".env.local" });
@@ -19,7 +24,7 @@ loadEnv();
 
 const app = new Hono();
 
-const origins = (process.env.CORS_ORIGINS ?? "http://localhost:3000,http://localhost:5173")
+const origins = (process.env.CORS_ORIGINS ?? "http://localhost:3000,http://localhost:5173,http://localhost:5174")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
@@ -48,6 +53,7 @@ app.get("/products", async (c) => {
 
 app.route("/orders", ordersRoute);
 app.route("/catalog", catalogRoute);
+app.route("/storefront", storefrontRoute);
 app.route("/auth", authRoute);
 app.route("/account", accountRoute);
 
@@ -66,6 +72,16 @@ app.route("/admin/products", adminProductsRoute);
 app.route("/admin/catalog", adminCatalogRoute);
 app.route("/admin/dashboard", adminDashboardRoute);
 app.route("/admin/uploads", adminUploadsRoute);
+app.route("/admin/storefront", adminStorefrontRoute);
+app.route("/admin/customers", adminCustomersRoute);
+app.route("/admin/seo", adminSeoRoute);
+app.route("/admin/content", adminContentRoute);
+
+app.onError((err, c) => {
+  console.error(err);
+  const message = err instanceof Error ? err.message : "Internal server error.";
+  return c.json({ success: false, message }, 500);
+});
 
 const port = Number(process.env.PORT ?? 4000);
 

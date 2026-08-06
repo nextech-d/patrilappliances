@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Plus, ExternalLink, Pencil } from "lucide-react";
-import { api, formatKes, STORE_URL } from "../lib/api";
-import { productThumbUrl, STOCK_LABELS, type StockStatus } from "../lib/products";
+import { Search, RefreshCw, Plus, Pencil, Package } from "lucide-react";
+import { api, formatKes } from "../lib/api";
+import { productThumbUrl, type StockStatus } from "../lib/products";
+import {
+  CatalogStatTile,
+  StorefrontSection,
+  storefrontInputClass,
+  storefrontSelectClass,
+} from "../components/StorefrontPanel";
 import ProductCreatedView from "../views/ProductCreatedView";
 
 type Product = {
@@ -36,12 +42,6 @@ const QUICK_FILTERS = [
   { key: "out", label: "Out of stock", stock: "out_of_stock", published: "" },
   { key: "draft", label: "Unpublished", stock: "", published: "false" },
 ] as const;
-
-function stockBadgeClass(status: StockStatus): string {
-  if (status === "in_stock") return "bg-emerald-500/10 text-emerald-400";
-  if (status === "low_stock") return "bg-amber-500/10 text-amber-400";
-  return "bg-red-500/10 text-red-400";
-}
 
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -103,14 +103,31 @@ function ProductsListPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    const currentQ = searchParams.get("q") ?? "";
+    if (trimmed === currentQ) return;
+
+    const timer = window.setTimeout(() => {
+      const next = new URLSearchParams(searchParams);
+      if (trimmed) next.set("q", trimmed);
+      else next.delete("q");
+      setSearchParams(next, { replace: true });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput, searchParams, setSearchParams]);
+
   function applyQuickFilter(key: string) {
     const filter = QUICK_FILTERS.find((f) => f.key === key);
     if (!filter) return;
     const next = new URLSearchParams();
     const q = searchParams.get("q");
     const brandId = searchParams.get("brandId");
+    const subcategoryId = searchParams.get("subcategoryId");
     if (q) next.set("q", q);
     if (brandId) next.set("brandId", brandId);
+    if (subcategoryId) next.set("subcategoryId", subcategoryId);
     if (filter.stock) next.set("stock", filter.stock);
     if (filter.published) next.set("published", filter.published);
     setSearchParams(next);
@@ -126,19 +143,17 @@ function ProductsListPage() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = searchInput.trim();
     const next = new URLSearchParams(searchParams);
-    if (searchInput.trim()) next.set("q", searchInput.trim());
+    if (trimmed) next.set("q", trimmed);
     else next.delete("q");
-    setSearchParams(next);
+    setSearchParams(next, { replace: true });
   }
 
-  async function quickSave(
-    id: number,
-    patch: { priceKes?: number; stockStatus?: StockStatus; isPublished?: boolean }
-  ) {
+  async function quickSaveStock(id: number, stockStatus: StockStatus) {
     const data = await api<{ product: Product }>("/admin/products", {
       method: "PATCH",
-      body: JSON.stringify({ id, ...patch }),
+      body: JSON.stringify({ id, stockStatus }),
     });
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...data.product } : p)));
   }
@@ -148,16 +163,7 @@ function ProductsListPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-white">Products</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            {summary ? (
-              <>
-                {summary.total} total · {summary.published} published · {summary.lowStock} low
-                stock · {summary.outOfStock} out of stock
-              </>
-            ) : (
-              "Catalog management"
-            )}
-          </p>
+          <p className="mt-1 text-sm text-neutral-500">Catalog management</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -179,64 +185,120 @@ function ProductsListPage() {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        {QUICK_FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => applyQuickFilter(f.key)}
-            className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
-              activeQuickKey() === f.key
-                ? "bg-[#00e599]/15 text-[#00e599]"
-                : "bg-[#111] text-neutral-500 hover:text-neutral-300"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <StorefrontSection
+        className="mt-6"
+        title="Overview"
+        description="Product counts by status"
+        icon={Package}
+        accent="green"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {loading && !summary ? (
+            <>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 animate-pulse rounded-xl border border-[#333] bg-[#161616]"
+                />
+              ))}
+            </>
+          ) : (
+            <>
+              <CatalogStatTile
+                label="Total"
+                value={summary?.total ?? 0}
+                icon={Package}
+                accent="green"
+              />
+              <CatalogStatTile
+                label="Published"
+                value={summary?.published ?? 0}
+                icon={Package}
+                accent="sky"
+                valueClassName="text-[#00e599]"
+              />
+              <CatalogStatTile
+                label="Low stock"
+                value={summary?.lowStock ?? 0}
+                icon={Package}
+                accent="amber"
+                valueClassName="text-amber-400"
+              />
+              <CatalogStatTile
+                label="Out of stock"
+                value={summary?.outOfStock ?? 0}
+                icon={Package}
+                accent="violet"
+                valueClassName="text-red-400"
+              />
+            </>
+          )}
+        </div>
+      </StorefrontSection>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <form onSubmit={handleSearch} className="relative min-w-[220px] flex-1 max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search name, slug, brand…"
-            className="w-full rounded-lg border border-[#333] bg-[#111] py-2 pl-10 pr-4 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none"
-          />
-        </form>
-        <select
-          value={stockFilter}
-          onChange={(e) => {
-            const next = new URLSearchParams(searchParams);
-            if (e.target.value) next.set("stock", e.target.value);
-            else next.delete("stock");
-            setSearchParams(next);
-          }}
-          className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs text-white"
-        >
-          {STOCK_OPTS.map((o) => (
-            <option key={o.value || "all"} value={o.value}>
-              {o.label}
-            </option>
+      <StorefrontSection
+        className="mt-6"
+        title="Filters"
+        description="Quick filters, search, stock, and visibility."
+        icon={Search}
+        accent="violet"
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          {QUICK_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => applyQuickFilter(f.key)}
+              className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                activeQuickKey() === f.key
+                  ? "bg-[#00e599]/15 text-[#00e599]"
+                  : "bg-[#111] text-neutral-500 hover:text-neutral-300"
+              }`}
+            >
+              {f.label}
+            </button>
           ))}
-        </select>
-        <select
-          value={publishedFilter}
-          onChange={(e) => {
-            const next = new URLSearchParams(searchParams);
-            if (e.target.value) next.set("published", e.target.value);
-            else next.delete("published");
-            setSearchParams(next);
-          }}
-          className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs text-white"
-        >
-          <option value="">All visibility</option>
-          <option value="true">Published</option>
-          <option value="false">Unpublished</option>
-        </select>
-      </div>
+          <form onSubmit={handleSearch} className="relative min-w-[200px] flex-1 max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search name, slug, brand…"
+              className={`${storefrontInputClass} pl-10`}
+            />
+          </form>
+          <select
+            value={stockFilter}
+            onChange={(e) => {
+              const next = new URLSearchParams(searchParams);
+              if (e.target.value) next.set("stock", e.target.value);
+              else next.delete("stock");
+              setSearchParams(next);
+            }}
+            className={`${storefrontSelectClass} w-full min-w-[140px] max-w-xs sm:w-40`}
+          >
+            {STOCK_OPTS.map((o) => (
+              <option key={o.value || "all"} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={publishedFilter}
+            onChange={(e) => {
+              const next = new URLSearchParams(searchParams);
+              if (e.target.value) next.set("published", e.target.value);
+              else next.delete("published");
+              setSearchParams(next);
+            }}
+            className={`${storefrontSelectClass} w-full min-w-[140px] max-w-xs sm:w-44`}
+          >
+            <option value="">All visibility</option>
+            <option value="true">Published</option>
+            <option value="false">Unpublished</option>
+          </select>
+        </div>
+      </StorefrontSection>
 
       {brandIdFilter && (
         <div className="mt-4 flex items-center gap-2 text-xs text-neutral-400">
@@ -278,84 +340,80 @@ function ProductsListPage() {
         </p>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-[#262626]">
-        {loading ? (
-          <div className="space-y-0 divide-y divide-[#262626] bg-[#0a0a0a] p-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex animate-pulse gap-4 py-4">
-                <div className="h-10 w-10 rounded-lg bg-[#222]" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-1/3 rounded bg-[#222]" />
-                  <div className="h-3 w-1/4 rounded bg-[#222]" />
+      <StorefrontSection
+        className="mt-6"
+        title="All products"
+        description={
+          !loading && summary
+            ? `Showing ${products.length} of ${summary.total}`
+            : "Browse and manage your product catalog"
+        }
+        icon={Package}
+        accent="amber"
+        badge={summary && !loading ? String(products.length) : undefined}
+      >
+        <div className="overflow-hidden rounded-xl border border-[#262626]">
+          {loading ? (
+            <div className="space-y-0 divide-y divide-[#262626] bg-[#0a0a0a] p-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex animate-pulse gap-4 py-4">
+                  <div className="h-10 w-10 rounded-lg bg-[#222]" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-1/3 rounded bg-[#222]" />
+                    <div className="h-3 w-1/4 rounded bg-[#222]" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="bg-[#0a0a0a] px-6 py-16 text-center text-sm text-neutral-500">
-            No products match your filters.
-          </div>
-        ) : (
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#111111] text-[10px] uppercase tracking-wider text-neutral-500">
-              <tr>
-                <th className="px-4 py-3 w-12"></th>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Stock</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#262626] bg-[#0a0a0a]">
-              {products.map((product) => (
-                <ProductRow key={product.id} product={product} onSave={quickSave} />
               ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {!loading && summary && (
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-neutral-600">
-          Showing {products.length} of {summary.total}
-        </p>
-      )}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="bg-[#0a0a0a] px-6 py-16 text-center text-sm text-neutral-500">
+              No products match your filters.
+            </div>
+          ) : (
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#111111] text-[10px] uppercase tracking-wider text-neutral-500">
+                <tr>
+                  <th className="w-12 px-4 py-3"></th>
+                  <th className="px-4 py-3">Product</th>
+                  <th className="px-4 py-3">Brand</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">Stock</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#262626] bg-[#0a0a0a]">
+                {products.map((product) => (
+                  <ProductRow key={product.id} product={product} onStockChange={quickSaveStock} />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </StorefrontSection>
     </div>
   );
 }
 
 function ProductRow({
   product,
-  onSave,
+  onStockChange,
 }: {
   product: Product;
-  onSave: (
-    id: number,
-    patch: { priceKes?: number; stockStatus?: StockStatus; isPublished?: boolean }
-  ) => Promise<void>;
+  onStockChange: (id: number, stockStatus: StockStatus) => Promise<void>;
 }) {
-  const [price, setPrice] = useState(String(product.priceKes));
-  const [stock, setStock] = useState(product.stockStatus);
-  const [saving, setSaving] = useState(false);
-  const [toggling, setToggling] = useState(false);
+  const [togglingStock, setTogglingStock] = useState(false);
 
-  async function handleSave() {
-    setSaving(true);
-    try {
-      await onSave(product.id, { priceKes: Number(price), stockStatus: stock });
-    } finally {
-      setSaving(false);
-    }
-  }
+  const inStock = product.stockStatus !== "out_of_stock";
 
-  async function togglePublished() {
-    setToggling(true);
+  async function toggleStock() {
+    setTogglingStock(true);
     try {
-      await onSave(product.id, { isPublished: !product.isPublished });
+      await onStockChange(
+        product.id,
+        inStock ? "out_of_stock" : "in_stock"
+      );
     } finally {
-      setToggling(false);
+      setTogglingStock(false);
     }
   }
 
@@ -378,78 +436,55 @@ function ProductRow({
         <div className="font-mono text-[10px] text-neutral-600">#{product.id}</div>
       </td>
       <td className="px-4 py-3">{product.brand}</td>
+      <td className="px-4 py-3 tabular-nums text-white">{formatKes(product.priceKes)}</td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="w-24 rounded border border-[#333] bg-[#111] px-2 py-1 text-white"
-          />
-          <span className="text-neutral-600">{formatKes(Number(price) || 0)}</span>
-        </div>
-      </td>
-      <td className="px-4 py-3">
-        <select
-          value={stock}
-          onChange={(e) => setStock(e.target.value as StockStatus)}
-          className="rounded border border-[#333] bg-[#111] px-2 py-1 text-white"
-        >
-          {(Object.keys(STOCK_LABELS) as StockStatus[]).map((s) => (
-            <option key={s} value={s}>
-              {STOCK_LABELS[s]}
-            </option>
-          ))}
-        </select>
-      </td>
-      <td className="px-4 py-3">
-        <button
-          type="button"
-          disabled={toggling}
-          onClick={togglePublished}
-          className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-            product.isPublished
-              ? "bg-[#00e599]/10 text-[#00e599]"
-              : "bg-neutral-800 text-neutral-500"
-          }`}
-        >
-          {product.isPublished ? "Live" : "Draft"}
-        </button>
-        <span
-          className={`ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${stockBadgeClass(product.stockStatus)}`}
-        >
-          {STOCK_LABELS[product.stockStatus]}
-        </span>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            disabled={saving}
-            onClick={handleSave}
-            className="rounded-lg bg-[#00e599]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/20 disabled:opacity-50"
+            role="switch"
+            aria-checked={inStock}
+            aria-label={inStock ? "Mark out of stock" : "Mark in stock"}
+            disabled={togglingStock}
+            onClick={toggleStock}
+            className={`relative h-4 w-7 shrink-0 rounded-full transition disabled:opacity-50 ${
+              inStock
+                ? product.stockStatus === "low_stock"
+                  ? "bg-amber-500"
+                  : "bg-[#00e599]"
+                : "bg-neutral-700"
+            }`}
           >
-            Save
+            <span
+              className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition ${
+                inStock ? "left-[14px]" : "left-0.5"
+              }`}
+            />
           </button>
-          <Link
-            to={`/products/${product.id}/edit`}
-            className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:text-white"
-            title="Edit"
+          <span
+            className={`text-xs ${
+              inStock
+                ? product.stockStatus === "low_stock"
+                  ? "text-amber-400"
+                  : "text-emerald-400"
+                : "text-red-400"
+            }`}
           >
-            <Pencil className="h-3.5 w-3.5" />
-          </Link>
-          {product.isPublished && (
-            <a
-              href={`${STORE_URL}/product/${product.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:text-white"
-              title="View on store"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
+            {product.stockStatus === "low_stock"
+              ? "Low stock"
+              : inStock
+                ? "In stock"
+                : "Out of stock"}
+          </span>
         </div>
+      </td>
+      <td className="px-4 py-3">
+        <Link
+          to={`/products/${product.id}/edit`}
+          className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:text-white"
+          title="Edit"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Link>
       </td>
     </tr>
   );

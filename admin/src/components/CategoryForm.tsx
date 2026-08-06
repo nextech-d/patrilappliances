@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Layers, Settings2, FolderTree, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
+import {
+  StorefrontField,
+  StorefrontSection,
+  storefrontInputClass,
+} from "./StorefrontPanel";
 
 export type CategorySubcategory = {
   id: number;
@@ -37,6 +43,24 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+type SubcategoryDraft = {
+  key: string;
+  label: string;
+  slug: string;
+  slugTouched: boolean;
+  sortOrder: string;
+};
+
+function newSubcategoryDraft(sortOrder = 0): SubcategoryDraft {
+  return {
+    key: crypto.randomUUID(),
+    label: "",
+    slug: "",
+    slugTouched: false,
+    sortOrder: String(sortOrder),
+  };
+}
+
 export default function CategoryForm({ category, mode, onCreated }: Props) {
   const navigate = useNavigate();
   const isNew = mode === "create";
@@ -47,13 +71,9 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!category);
   const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 0));
+  const [subcategoryDrafts, setSubcategoryDrafts] = useState<SubcategoryDraft[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  const inputClass =
-    "w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-[#00e599]/40 focus:outline-none";
-  const labelClass =
-    "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-neutral-500";
 
   function handleLabelChange(value: string) {
     setLabel(value);
@@ -80,6 +100,21 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
           method: "POST",
           body: JSON.stringify(payload),
         });
+
+        const subsToCreate = subcategoryDrafts.filter((sub) => sub.label.trim());
+        for (let i = 0; i < subsToCreate.length; i++) {
+          const sub = subsToCreate[i];
+          await api("/admin/catalog/subcategories", {
+            method: "POST",
+            body: JSON.stringify({
+              categoryId: data.category.id,
+              label: sub.label.trim(),
+              slug: sub.slug.trim() || slugify(sub.label),
+              sortOrder: Number(sub.sortOrder) || i,
+            }),
+          });
+        }
+
         if (onCreated) {
           onCreated(data.category.id);
         } else {
@@ -99,83 +134,216 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
     }
   }
 
+  function updateSubcategoryDraft(key: string, patch: Partial<SubcategoryDraft>) {
+    setSubcategoryDrafts((prev) =>
+      prev.map((sub) => (sub.key === key ? { ...sub, ...patch } : sub))
+    );
+  }
+
+  function handleSubcategoryLabelChange(key: string, value: string) {
+    setSubcategoryDrafts((prev) =>
+      prev.map((sub) => {
+        if (sub.key !== key) return sub;
+        return {
+          ...sub,
+          label: value,
+          slug: sub.slugTouched ? sub.slug : slugify(value),
+        };
+      })
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
-      <div className="space-y-5 rounded-xl border border-[#262626] bg-[#111111] p-6">
+    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <StorefrontSection
+        title="Category details"
+        description={
+          isNew
+            ? "Name, meta title, and description shown on the storefront."
+            : "Label, navigation text, and description shown on the storefront."
+        }
+        icon={Layers}
+        accent="green"
+      >
         {error && (
           <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
             {error}
           </p>
         )}
-
-        <div>
-          <label className={labelClass}>Label</label>
+        <StorefrontField label={isNew ? "Name" : "Label"} sentenceCase={isNew}>
           <input
             required
             value={label}
             onChange={(e) => handleLabelChange(e.target.value)}
-            className={inputClass}
+            className={storefrontInputClass}
           />
-        </div>
-
-        <div>
-          <label className={labelClass}>Nav label</label>
+        </StorefrontField>
+        <StorefrontField
+          label={isNew ? "Meta title" : "Nav label"}
+          sentenceCase={isNew}
+          hint={
+            isNew
+              ? "Page title for SEO and browser tabs."
+              : "Short label used in the header menu."
+          }
+        >
           <input
             required
             value={navLabel}
             onChange={(e) => setNavLabel(e.target.value)}
-            className={inputClass}
+            className={storefrontInputClass}
           />
-        </div>
-
-        <div>
-          <label className={labelClass}>Description</label>
+        </StorefrontField>
+        <StorefrontField label="Description">
           <textarea
             required
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={inputClass}
+            className={storefrontInputClass}
           />
-        </div>
-      </div>
+        </StorefrontField>
+      </StorefrontSection>
 
-      <div className="rounded-xl border border-[#262626] bg-[#111111] p-5">
-        <label className={labelClass}>Slug</label>
-        <input
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true);
-            setSlug(e.target.value);
-          }}
-          placeholder={slugify(label) || "category-slug"}
-          className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2 font-mono text-xs text-white focus:border-[#00e599]/40 focus:outline-none"
-        />
-
-        <label className={`${labelClass} mt-4`}>Sort order</label>
-        <input
-          type="number"
-          min={0}
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-3 py-2 text-sm text-white focus:border-[#00e599]/40 focus:outline-none"
-        />
-
+      <StorefrontSection
+        title="Settings"
+        description="URL slug and sort order for catalog listings."
+        icon={Settings2}
+        accent="sky"
+      >
+        <StorefrontField label="Slug">
+          <input
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true);
+              setSlug(e.target.value);
+            }}
+            placeholder={slugify(label) || "category-slug"}
+            className={`${storefrontInputClass} font-mono text-xs`}
+          />
+        </StorefrontField>
+        <StorefrontField label="Sort order" hint="Lower numbers appear first.">
+          <input
+            type="number"
+            min={0}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className={storefrontInputClass}
+          />
+        </StorefrontField>
         {!isNew && category && category.subcategoryCount !== undefined && (
-          <p className="mt-4 text-xs text-neutral-500">
+          <p className="text-xs text-neutral-500">
             {category.subcategoryCount} subcategor
             {category.subcategoryCount === 1 ? "y" : "ies"}
           </p>
         )}
+        {!isNew && (
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Update category"}
+          </button>
+        )}
+      </StorefrontSection>
+      </div>
 
+    {isNew && (
+      <StorefrontSection
+        className="mt-6"
+        title="Subcategories"
+        description="Optional. Add subcategories now or skip and create the category on its own."
+        icon={FolderTree}
+        accent="violet"
+        actions={
+          <button
+            type="button"
+            onClick={() =>
+              setSubcategoryDrafts((prev) => [...prev, newSubcategoryDraft(prev.length)])
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#333] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 hover:text-white"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add subcategory
+          </button>
+        }
+      >
+        {subcategoryDrafts.length === 0 ? (
+          <p className="text-sm text-neutral-500">No subcategories added yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {subcategoryDrafts.map((sub, index) => (
+              <div
+                key={sub.key}
+                className="rounded-lg border border-[#2a2a2a] bg-[#111111] p-3.5"
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+                    Subcategory {index + 1}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSubcategoryDrafts((prev) => prev.filter((row) => row.key !== sub.key))
+                    }
+                    className="text-red-400/70 hover:text-red-400"
+                    title="Remove"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <StorefrontField label="Label">
+                    <input
+                      value={sub.label}
+                      onChange={(e) => handleSubcategoryLabelChange(sub.key, e.target.value)}
+                      placeholder="e.g. Refrigerators"
+                      className={storefrontInputClass}
+                    />
+                  </StorefrontField>
+                  <StorefrontField label="Slug">
+                    <input
+                      value={sub.slug}
+                      onChange={(e) =>
+                        updateSubcategoryDraft(sub.key, {
+                          slugTouched: true,
+                          slug: e.target.value,
+                        })
+                      }
+                      placeholder={slugify(sub.label) || "subcategory-slug"}
+                      className={`${storefrontInputClass} font-mono text-xs`}
+                    />
+                  </StorefrontField>
+                  <StorefrontField label="Sort order">
+                    <input
+                      type="number"
+                      min={0}
+                      value={sub.sortOrder}
+                      onChange={(e) =>
+                        updateSubcategoryDraft(sub.key, { sortOrder: e.target.value })
+                      }
+                      className={storefrontInputClass}
+                    />
+                  </StorefrontField>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </StorefrontSection>
+    )}
+
+      {isNew && (
         <button
           type="submit"
           disabled={saving}
-          className="mt-5 w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50"
+          className="w-full rounded-lg bg-[#00e599] py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-50 sm:w-auto sm:min-w-[200px]"
         >
-          {saving ? "Saving…" : isNew ? "Create category" : "Update category"}
+          {saving ? "Saving…" : "Create category"}
         </button>
-      </div>
+      )}
     </form>
   );
 }
