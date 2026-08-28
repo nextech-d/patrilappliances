@@ -3,12 +3,12 @@
   "outputDirectory": "public",
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "/api" }
+    { "src": "^/api/_app$", "dest": "/api/_app" },
+    { "src": "^/api/(?!_app(?:/|\\?|$)|health$|auth/admin/login$|auth/admin/me$)(.*)$", "dest": "/api/_app" }
   ],
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "prisma/**",
-      "memory": 1024
+    "api/_app.ts": {
+      "memory": 256
     },
     "api/health.ts": {
       "memory": 256
