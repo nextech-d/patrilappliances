@@ -1,5 +1,0 @@
-# Standalone apps at the repo root only.
-# A pattern like `api/` also matches app/api (Next route handlers)
-# and `admin/` matches app/admin (legacy admin pages) — which 404s them on Vercel.
-/admin/
-/api/

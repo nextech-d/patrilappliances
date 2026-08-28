@@ -4,38 +4,16 @@ import { ADMIN_COOKIE, getAdminToken } from "./app/lib/admin-auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isLoginPage = pathname === "/admin/login";
-  const isLoginApi = pathname === "/api/admin/login";
-  const adminAppUrl = process.env.ADMIN_APP_URL?.trim().replace(/\/$/, "");
-  const legacyDisabled = process.env.DISABLE_LEGACY_ADMIN === "true";
 
-  if (adminAppUrl || legacyDisabled) {
-    if (pathname.startsWith("/api/admin") && !isLoginApi) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Legacy admin API is disabled. Use the Patril Admin app.",
-        },
-        { status: 410 }
-      );
-    }
-
-    if (pathname.startsWith("/admin")) {
-      if (adminAppUrl) {
-        const adminPath = pathname.replace(/^\/admin/, "") || "/";
-        const target = new URL(adminPath, `${adminAppUrl}/`);
-        target.search = request.nextUrl.search;
-        return NextResponse.redirect(target);
-      }
-      if (legacyDisabled && !isLoginPage) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
-      }
-    }
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const rest = pathname.replace(/^\/admin/, "") || "/";
+    const target = request.nextUrl.clone();
+    target.pathname = `/manage${rest === "/" ? "" : rest}`;
+    return NextResponse.redirect(target);
   }
 
-  const isProtected =
-    (pathname.startsWith("/admin") && !isLoginPage) ||
-    (pathname.startsWith("/api/admin") && !isLoginApi);
+  const isLoginApi = pathname === "/api/admin/login";
+  const isProtected = pathname.startsWith("/api/admin") && !isLoginApi;
 
   if (!isProtected) {
     return NextResponse.next();
@@ -43,26 +21,20 @@ export async function middleware(request: NextRequest) {
 
   const expected = await getAdminToken();
   if (!expected) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { success: false, message: "Admin is not configured." },
-        { status: 503 }
-      );
-    }
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    return NextResponse.json(
+      { success: false, message: "Admin is not configured." },
+      { status: 503 }
+    );
   }
 
   const session = request.cookies.get(ADMIN_COOKIE)?.value;
   if (session !== expected) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });
-    }
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/api/admin/:path*"],
 };

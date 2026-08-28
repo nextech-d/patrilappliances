@@ -2,7 +2,7 @@ const TOKEN_KEY = "patril_admin_token";
 
 const base =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-  (import.meta.env.DEV ? "/api" : "http://localhost:4000");
+  (import.meta.env.DEV ? "/api" : "/backend");
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);

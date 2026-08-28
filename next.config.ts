@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pg"],
   images: {
     remotePatterns: [
       {
@@ -9,6 +10,15 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  async rewrites() {
+    return {
+      afterFiles: [
+        { source: "/manage", destination: "/manage/index.html" },
+        { source: "/manage/", destination: "/manage/index.html" },
+        { source: "/manage/:path*", destination: "/manage/index.html" },
+      ],
+    };
   },
 };
 

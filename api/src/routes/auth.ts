@@ -1,13 +1,17 @@
 import { Hono } from "hono";
 import { signAdminToken, verifyAdminPassword, verifyAdminToken } from "../lib/admin-jwt.js";
-import { extractBearerToken } from "../lib/session.js";
-import { loginUser, registerUser } from "../lib/users.js";
-import { deleteSession, extractBearerToken, getUserBySessionId } from "../lib/session.js";
+import {
+  deleteSession,
+  extractBearerToken,
+  getUserBySessionId,
+} from "../lib/session.js";
 import {
   createSavedAddress,
   deleteSavedAddress,
   listOrdersForUser,
   listUserAddresses,
+  loginUser,
+  registerUser,
 } from "../lib/users.js";
 
 export const authRoute = new Hono();
