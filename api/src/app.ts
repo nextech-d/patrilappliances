@@ -24,6 +24,7 @@ export function createApp(basePath = "") {
     "http://localhost:5173",
     "http://localhost:5174",
     "https://admin.homevibe.co.ke",
+    "https://homevibe-admin.vercel.app",
     "https://homevibe.co.ke",
     "https://www.homevibe.co.ke",
     process.env.ADMIN_APP_URL?.trim(),
