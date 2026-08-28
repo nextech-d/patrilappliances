@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { SIGNATURE_BRANDS, PARTNER_BRANDS, brandHref, type Brand } from "../data/brands";
-import TShapeGrid from "./TShapeGrid";
+// import TShapeGrid from "./TShapeGrid";
 import { useInventory } from "../context/ProductsContext";
 
 function productCountForBrand(brandName: string, inventory: { brand: string }[]): number {
@@ -19,7 +19,7 @@ function SignatureBrandCard({
   return (
     <Link
       href={brandHref(brand.slug)}
-      className="relative block w-full overflow-hidden rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-neutral-800 to-neutral-700 p-5 pb-9 text-white"
+      className="relative flex h-full min-h-[7.5rem] w-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-neutral-800 to-neutral-700 p-5 pb-9 text-white"
     >
       <span className="absolute right-3 top-3 rounded-full bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-neutral-300">
         Signature
@@ -48,7 +48,7 @@ export default function FeaturedBrands() {
         </h2>
       </div>
 
-      <TShapeGrid
+      {/* <TShapeGrid
         items={SIGNATURE_BRANDS}
         getKey={(brand) => brand.slug}
         itemClassName="w-[min(100%,7.04rem)] sm:w-[7.04rem]"
@@ -58,7 +58,17 @@ export default function FeaturedBrands() {
             productCount={productCountForBrand(brand.name, inventory)}
           />
         )}
-      />
+      /> */}
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {SIGNATURE_BRANDS.map((brand) => (
+          <SignatureBrandCard
+            key={brand.slug}
+            brand={brand}
+            productCount={productCountForBrand(brand.name, inventory)}
+          />
+        ))}
+      </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-2 rounded-2xl border border-neutral-200/60 bg-[color:var(--surface)] p-5">
         {PARTNER_BRANDS.map((brand) => (
