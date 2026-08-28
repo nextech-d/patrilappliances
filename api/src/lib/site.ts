@@ -1,7 +1,7 @@
 export const SITE = {
   name: "HomeVibe",
   email: process.env.ORDER_NOTIFY_EMAIL ?? "hello@homevibe.co.ke",
-  phone: "+254 700 000 000",
+  phone: "+254 719 705 935",
   currency: {
     code: "KES",
     locale: "en-KE",
