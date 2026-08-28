@@ -19,12 +19,19 @@ import { storefrontRoute } from "./routes/storefront.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
 
 loadEnv({ path: ".env.local" });
-loadEnv({ path: "../.env.local" });
-loadEnv();
+loadEnv({ path: "../.env.local", override: true });
+loadEnv({ override: true });
 
 const app = new Hono();
 
-const origins = (process.env.CORS_ORIGINS ?? "http://localhost:3000,http://localhost:5173,http://localhost:5174")
+const defaultOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.ADMIN_APP_URL?.trim(),
+].filter(Boolean) as string[];
+
+const origins = (process.env.CORS_ORIGINS ?? defaultOrigins.join(","))
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
@@ -58,10 +65,21 @@ app.route("/auth", authRoute);
 app.route("/account", accountRoute);
 
 const adminAuth = async (c: import("hono").Context, next: () => Promise<void>) => {
+  if (c.req.method === "OPTIONS") {
+    await next();
+    return;
+  }
+
   const token = extractBearerToken(c.req.header("Authorization"));
   const valid = await verifyAdminToken(token ?? undefined);
   if (!valid) {
-    return c.json({ success: false, message: "Unauthorized." }, 401);
+    return c.json(
+      {
+        success: false,
+        message: "Unauthorized. Sign in again — your session may have expired.",
+      },
+      401
+    );
   }
   await next();
 };

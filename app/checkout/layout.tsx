@@ -4,7 +4,7 @@ import { buildPageMetadata, noIndexMetadata } from "../lib/seo";
 export const metadata: Metadata = {
   ...buildPageMetadata({
     title: "Checkout",
-    description: "Complete your Patril Appliances order.",
+    description: "Complete your HomeVibe order.",
   }),
   ...noIndexMetadata,
 };

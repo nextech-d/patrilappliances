@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { getToken } from "./lib/api";
+import { api, clearToken, getToken } from "./lib/api";
 import Shell from "./components/Shell";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -24,7 +25,35 @@ import ContentPostsPage from "./pages/ContentPostsPage";
 import ContentPostEditPage from "./pages/ContentPostEditPage";
 
 function ProtectedLayout() {
-  if (!getToken()) return <Navigate to="/login" replace />;
+  const [sessionReady, setSessionReady] = useState(false);
+  const [authed, setAuthed] = useState(Boolean(getToken()));
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setAuthed(false);
+      setSessionReady(true);
+      return;
+    }
+
+    api("/auth/admin/me")
+      .then(() => {
+        setAuthed(true);
+      })
+      .catch(() => {
+        clearToken();
+        setAuthed(false);
+      })
+      .finally(() => {
+        setSessionReady(true);
+      });
+  }, []);
+
+  if (!sessionReady) {
+    return <div className="p-8 text-sm text-neutral-500">Checking session…</div>;
+  }
+
+  if (!authed) return <Navigate to="/login" replace />;
   return <Shell />;
 }
 

@@ -64,7 +64,7 @@ export default function Shell() {
               <Database className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-xs font-bold tracking-wide text-white">Patril Admin</p>
+              <p className="text-xs font-bold tracking-wide text-white">HomeVibe Admin</p>
               <p className="text-[10px] text-neutral-500">production</p>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function Shell() {
 
         <div className="border-t border-[#262626] p-3 space-y-1">
           <a
-            href="https://patrilappliances.vercel.app"
+            href="https://homevibe.co.ke"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-neutral-500 hover:bg-[#1a1a1a] hover:text-neutral-300"

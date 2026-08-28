@@ -4,7 +4,7 @@ import { buildPageMetadata } from "../lib/seo";
 export const metadata: Metadata = buildPageMetadata({
   title: "Track Your Order",
   description:
-    "Look up your Patril Appliances order status with your order reference (e.g. PTL-123456).",
+    "Look up your HomeVibe order status with your order reference (e.g. PTL-123456).",
   path: "/track-order",
 });
 

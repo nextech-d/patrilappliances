@@ -39,7 +39,7 @@ export default function BrandCatalog({ brand }: BrandCatalogProps) {
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm text-black/60">
             Browse {products.length} {products.length === 1 ? "product" : "products"} from{" "}
-            {brand.name} available at Patril Appliances.
+            {brand.name} available at HomeVibe.
           </p>
         </div>
 

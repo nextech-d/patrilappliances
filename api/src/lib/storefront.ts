@@ -48,16 +48,16 @@ export const SITE_SETTING_KEYS = [
 ] as const;
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  name: "Patril Appliances",
+  name: "HomeVibe",
   tagline: "Kitchen & gym gear you can trust",
-  email: "hello@patrilappliances.com",
+  email: "hello@homevibe.co.ke",
   phone: "+254 700 000 000",
   whatsapp: "254700000000",
   region: "East & Central Africa",
   city: "Nairobi",
-  facebookUrl: "https://facebook.com/patrillappliances",
-  instagramUrl: "https://instagram.com/patrillappliances",
-  tiktokUrl: "https://tiktok.com/@patrillappliances",
+  facebookUrl: "https://facebook.com/homevibe",
+  instagramUrl: "https://instagram.com/homevibe",
+  tiktokUrl: "https://tiktok.com/@homevibe",
 };
 
 function mapSiteSettings(rows: { key: string; value: string }[]): SiteSettings {

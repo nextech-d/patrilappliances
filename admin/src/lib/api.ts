@@ -40,6 +40,15 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   }
 
   if (!res.ok) {
+    if (res.status === 401 && options.auth !== false) {
+      clearToken();
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
+        window.location.href = "/login";
+      }
+    }
     throw new Error(data.message ?? `Request failed (${res.status})`);
   }
 
@@ -107,6 +116,14 @@ async function uploadImage(file: File, path: string): Promise<string> {
 
   const data = (await res.json()) as { success?: boolean; url?: string; message?: string };
 
+  if (res.status === 401) {
+    clearToken();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login";
+    }
+    throw new Error(data.message ?? "Unauthorized.");
+  }
+
   if (!res.ok || !data.url) {
     throw new Error(data.message ?? `Upload failed (${res.status})`);
   }
@@ -115,4 +132,4 @@ async function uploadImage(file: File, path: string): Promise<string> {
 }
 
 export const STORE_URL =
-  import.meta.env.VITE_STORE_URL?.replace(/\/$/, "") || "https://patrilappliances.vercel.app";
+  import.meta.env.VITE_STORE_URL?.replace(/\/$/, "") || "https://homevibe.co.ke";

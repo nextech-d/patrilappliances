@@ -60,7 +60,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
     highlights: [
       "AI-assisted cooking with 120+ preset programs",
       "True convection with even heat distribution",
-      "Wi-Fi enabled — control from the Patril app",
+      "Wi-Fi enabled — control from the HomeVibe app",
       "Self-cleaning cycle with eco mode",
     ],
   }),

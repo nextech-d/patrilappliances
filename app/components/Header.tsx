@@ -15,7 +15,7 @@ export default function Header() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-6">
         <div className="flex shrink-0 items-center">
           <Link href="/" className="text-xl font-black tracking-tight text-black md:text-2xl">
-            Patril<span className="font-black">Appliances</span>
+            Home<span className="font-black">Vibe</span>
           </Link>
         </div>
 

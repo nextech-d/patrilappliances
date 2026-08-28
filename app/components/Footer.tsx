@@ -74,7 +74,7 @@ export default async function Footer() {
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <a
-                href={buildWhatsAppUrl("Hi, I'd like to speak with Patril.", site.whatsapp)}
+                href={buildWhatsAppUrl("Hi, I'd like to speak with HomeVibe.", site.whatsapp)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block rounded-full bg-emerald-600 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-emerald-700"

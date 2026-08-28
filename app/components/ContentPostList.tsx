@@ -52,7 +52,7 @@ export default async function ContentPostList({
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="mx-auto max-w-4xl px-6 py-12">
         <header className="mb-10 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">Patril Appliances</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">HomeVibe</p>
           <h1 className="mt-2 text-4xl font-light tracking-tight text-neutral-900">{title}</h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">{description}</p>
         </header>

@@ -33,7 +33,7 @@ export async function generateContentPostMetadata({
   const fallbackDescription =
     post.metaDescription?.trim() ||
     post.excerpt.trim() ||
-    `${post.title} — ${listLabel} from Patril Appliances.`;
+    `${post.title} — ${listLabel} from HomeVibe.`;
 
   return buildPageMetadata({
     title: post.metaTitle?.trim() || post.title,
@@ -62,7 +62,7 @@ export default async function ContentPostDetail({
     dateModified: post.updatedAt,
     author: post.author
       ? { "@type": "Person", name: post.author }
-      : { "@type": "Organization", name: "Patril Appliances" },
+      : { "@type": "Organization", name: "HomeVibe" },
     url: absoluteUrl(contentPostPath(type, slug)),
     ...(post.ogImageUrl ? { image: [post.ogImageUrl] } : {}),
   };

@@ -15,7 +15,7 @@ adminSeoRoute.get("/overview", async (c) => {
     const siteUrl =
       process.env.STOREFRONT_URL?.trim() ||
       process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-      "https://patrilappliances.vercel.app";
+      "https://homevibe.co.ke";
     const overview = await getSeoOverview(siteUrl);
     return c.json({ success: true, overview });
   } catch (error) {

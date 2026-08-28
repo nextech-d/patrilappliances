@@ -90,7 +90,7 @@ export default function CheckoutPage() {
   };
 
   const whatsappUrl = buildWhatsAppUrl(
-    `Hi Patril, I'd like to place an order.\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}, ${city}\n\nItems:\n` +
+    `Hi HomeVibe, I'd like to place an order.\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}, ${city}\n\nItems:\n` +
       items.map((item) => `• ${item.name} (Qty: ${item.qty})`).join("\n") +
       `\n\nTotal: ${formatPrice(total)}`
   );

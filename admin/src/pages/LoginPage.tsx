@@ -26,7 +26,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4">
       <div className="w-full max-w-sm rounded-xl border border-[#262626] bg-[#111111] p-8">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[#00e599]">
-          Patril Admin
+          HomeVibe Admin
         </p>
         <h1 className="mt-2 text-lg font-semibold text-white">Sign in</h1>
         <p className="mt-1 text-xs text-neutral-500">

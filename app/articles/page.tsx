@@ -5,7 +5,7 @@ import { buildPageMetadata } from "../lib/seo";
 export const metadata: Metadata = buildPageMetadata({
   title: "Guides & Articles",
   description:
-    "Buying guides and how-to articles for kitchen appliances and gym equipment from Patril Appliances.",
+    "Buying guides and how-to articles for kitchen appliances and gym equipment from HomeVibe.",
   path: "/articles",
 });
 

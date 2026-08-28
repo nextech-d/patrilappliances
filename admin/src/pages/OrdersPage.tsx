@@ -503,7 +503,7 @@ function OrderDetail({
   const trackUrl = `${STORE_URL}/track-order?id=${encodeURIComponent(order.trackingId)}`;
   const waUrl = whatsAppUrl(
     order.customerPhone,
-    `Hi ${order.customerName}, regarding your Patril order ${order.trackingId}.`
+    `Hi ${order.customerName}, regarding your HomeVibe order ${order.trackingId}.`
   );
 
   return (

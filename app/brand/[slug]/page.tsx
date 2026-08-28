@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     });
   }
 
-  const fallbackDescription = `Shop ${brand.name} kitchen and gym appliances at Patril Appliances. ${brand.tier === "signature" ? "Signature" : "Partner"} brand from ${brand.origin}.`;
+  const fallbackDescription = `Shop ${brand.name} kitchen and gym appliances at HomeVibe. ${brand.tier === "signature" ? "Signature" : "Partner"} brand from ${brand.origin}.`;
 
   return buildPageMetadata({
     title: brand.metaTitle?.trim() || brand.name,

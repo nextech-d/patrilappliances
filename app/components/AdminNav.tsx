@@ -28,7 +28,7 @@ export default function AdminNav() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
         <div className="flex items-center gap-3">
           <span className="text-xs font-black uppercase tracking-wider text-neutral-900">
-            Patril Admin
+            HomeVibe Admin
           </span>
           <nav className="flex items-center gap-1">
             <Link href="/admin/orders" className={linkClass("/admin/orders")}>

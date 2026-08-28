@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import { signAdminToken, verifyAdminPassword } from "../lib/admin-jwt.js";
+import { signAdminToken, verifyAdminPassword, verifyAdminToken } from "../lib/admin-jwt.js";
+import { extractBearerToken } from "../lib/session.js";
 import { loginUser, registerUser } from "../lib/users.js";
 import { deleteSession, extractBearerToken, getUserBySessionId } from "../lib/session.js";
 import {
@@ -23,6 +24,15 @@ authRoute.post("/admin/login", async (c) => {
   }
 
   return c.json({ success: true, token });
+});
+
+authRoute.get("/admin/me", async (c) => {
+  const token = extractBearerToken(c.req.header("Authorization"));
+  const valid = await verifyAdminToken(token ?? undefined);
+  if (!valid) {
+    return c.json({ success: false, message: "Unauthorized." }, 401);
+  }
+  return c.json({ success: true });
 });
 
 authRoute.post("/register", async (c) => {

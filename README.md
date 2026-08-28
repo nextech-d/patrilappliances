@@ -1,4 +1,4 @@
-# Patril Appliances
+# HomeVibe
 
 Next.js storefront for kitchen appliances and gym equipment — East & Central Africa.
 

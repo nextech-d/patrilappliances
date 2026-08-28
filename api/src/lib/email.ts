@@ -78,7 +78,7 @@ export async function sendOrderEmails(order: OrderEmailDetails): Promise<void> {
   if (!apiKey) return;
 
   const resend = new Resend(apiKey);
-  const from = process.env.EMAIL_FROM ?? "Patril Appliances <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
   const notifyEmail = process.env.ORDER_NOTIFY_EMAIL ?? SITE.email;
 
   await Promise.allSettled([
@@ -91,7 +91,7 @@ export async function sendOrderEmails(order: OrderEmailDetails): Promise<void> {
     resend.emails.send({
       from,
       to: order.customer.email,
-      subject: `Your Patril order ${order.trackingId}`,
+      subject: `Your HomeVibe order ${order.trackingId}`,
       html: buildCustomerConfirmationHtml(order),
     }),
   ]);
@@ -102,7 +102,7 @@ export async function sendOrderStatusEmail(order: StatusEmailDetails): Promise<v
   if (!apiKey) return;
 
   const resend = new Resend(apiKey);
-  const from = process.env.EMAIL_FROM ?? "Patril Appliances <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
 
   await resend.emails.send({
     from,

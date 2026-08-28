@@ -4,7 +4,7 @@ import { SITE } from "../config/site";
 /** Production site URL — set NEXT_PUBLIC_SITE_URL on Vercel when using a custom domain. */
 export function getSiteUrl(): string {
   const url =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://patrilappliances.vercel.app";
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://homevibe.co.ke";
   return url.replace(/\/$/, "");
 }
 
@@ -69,7 +69,7 @@ export const siteKeywords = [
   "M-Pesa",
   "Sub-Zero",
   "Life Fitness",
-  "Patril Appliances",
+  "HomeVibe",
 ];
 
 export const rootMetadata: Metadata = {

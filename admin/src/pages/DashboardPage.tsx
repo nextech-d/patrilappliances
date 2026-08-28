@@ -298,7 +298,7 @@ export default function DashboardPage() {
               Export orders CSV
             </button>
             <a
-              href="https://patrilappliances.vercel.app"
+              href="https://homevibe.co.ke"
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-xs font-medium text-neutral-300 hover:border-[#00e599]/30 hover:text-white"

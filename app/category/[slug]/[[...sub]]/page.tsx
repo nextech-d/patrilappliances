@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (subcategory) {
     return buildPageMetadata({
       title: `${subcategory.label} — ${category.label}`,
-      description: `Shop ${subcategory.label.toLowerCase()} from ${category.label.toLowerCase()} at Patril Appliances. Delivery across ${category.label.toLowerCase()} categories in Nairobi and East Africa.`,
+      description: `Shop ${subcategory.label.toLowerCase()} from ${category.label.toLowerCase()} at HomeVibe. Delivery across ${category.label.toLowerCase()} categories in Nairobi and East Africa.`,
       path: `/category/${slug}/${subSlug}`,
     });
   }

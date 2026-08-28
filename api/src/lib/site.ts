@@ -1,6 +1,6 @@
 export const SITE = {
-  name: "Patril Appliances",
-  email: process.env.ORDER_NOTIFY_EMAIL ?? "hello@patrilappliances.com",
+  name: "HomeVibe",
+  email: process.env.ORDER_NOTIFY_EMAIL ?? "hello@homevibe.co.ke",
   phone: "+254 700 000 000",
   currency: {
     code: "KES",
@@ -9,7 +9,7 @@ export const SITE = {
 } as const;
 
 export function getSiteUrl(): string {
-  const url = process.env.SITE_URL?.trim() || "https://patrilappliances.vercel.app";
+  const url = process.env.SITE_URL?.trim() || "https://homevibe.co.ke";
   return url.replace(/\/$/, "");
 }
 

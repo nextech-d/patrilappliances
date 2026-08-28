@@ -128,7 +128,7 @@ export default function SeoGlobalPage() {
                 type="text"
                 value={settings.homepageTitle}
                 onChange={(e) => updateField("homepageTitle", e.target.value)}
-                placeholder="Patril Appliances — Home & Gym Appliances"
+                placeholder="HomeVibe — Home & Gym Appliances"
                 className={storefrontInputClass}
               />
             </StorefrontField>

@@ -78,7 +78,7 @@ export default function CartPage() {
                             {item.name}
                           </Link>
                           <span className="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mt-1 block">
-                            Patril Appliances
+                            HomeVibe
                           </span>
                         </div>
                       </div>
