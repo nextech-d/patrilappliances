@@ -1,0 +1,3 @@
+# Standalone apps at the repo root only — do not ignore app/admin or app/api.
+/admin/
+/api/
