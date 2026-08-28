@@ -1,6 +1,6 @@
 /**
- * Base URL for the Patril API (standalone backend).
- * When unset, the storefront falls back to embedded Next.js /api routes.
+ * Base URL for the standalone Patril API.
+ * When unset, the storefront uses embedded Next.js `/api` routes.
  */
 export function getApiBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -8,8 +8,10 @@ export function getApiBaseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
+/** Hono paths like `/products` become `/api/products` on the Next storefront. */
 export function apiUrl(path: string): string {
   const base = getApiBaseUrl();
   const normalized = path.startsWith("/") ? path : `/${path}`;
-  return base ? `${base}${normalized}` : normalized;
+  if (base) return `${base}${normalized}`;
+  return `/api${normalized}`;
 }

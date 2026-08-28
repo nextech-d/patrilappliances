@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { ALL_CATEGORIES, getSubcategory } from "../../../data/categories";
+import { getSubcategory } from "../../../data/categories";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string; sub?: string[] }>;
@@ -47,17 +49,4 @@ export default async function CategoryPage({ params }: Props) {
   const subSlug = sub?.[0];
 
   return <CategoryCatalog category={category} subSlug={subSlug} />;
-}
-
-export async function generateStaticParams() {
-  const paths: { slug: string; sub?: string[] }[] = [];
-
-  for (const cat of ALL_CATEGORIES) {
-    paths.push({ slug: cat.slug });
-    for (const sub of cat.subcategories) {
-      paths.push({ slug: cat.slug, sub: [sub.slug] });
-    }
-  }
-
-  return paths;
 }
