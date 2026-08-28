@@ -11,15 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return {
-      afterFiles: [
-        { source: "/manage", destination: "/manage/index.html" },
-        { source: "/manage/", destination: "/manage/index.html" },
-        { source: "/manage/:path*", destination: "/manage/index.html" },
-      ],
-    };
-  },
 };
 
 export default nextConfig;

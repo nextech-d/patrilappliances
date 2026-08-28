@@ -46,6 +46,7 @@ yarn-error.log*
 # vercel
 .vercel
 
+# leftover from a failed attempt to embed the Vite admin in the shop
 /public/manage/
 
 # typescript

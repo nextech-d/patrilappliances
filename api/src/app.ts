@@ -23,6 +23,7 @@ export function createApp(basePath = "") {
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:5174",
+    "https://admin.homevibe.co.ke",
     "https://homevibe.co.ke",
     "https://www.homevibe.co.ke",
     process.env.ADMIN_APP_URL?.trim(),
@@ -37,7 +38,12 @@ export function createApp(basePath = "") {
   app.use(
     "*",
     cors({
-      origin: origins,
+      origin: (origin) => {
+        if (!origin) return origin;
+        if (origins.includes(origin)) return origin;
+        if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
+        return "";
+      },
       allowHeaders: ["Content-Type", "Authorization"],
       allowMethods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
       credentials: true,

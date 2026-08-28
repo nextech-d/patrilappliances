@@ -1,4 +1,0 @@
-{
-  "installCommand": "npm install && npm install --prefix admin && npm install --prefix api",
-  "buildCommand": "npm run build"
-}
