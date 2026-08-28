@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import { categoryHref } from "../data/categories";
 import { getAllCategories } from "../lib/categories.server";
@@ -21,6 +22,7 @@ const PAYMENT_METHODS = [
 ] as const;
 
 export default async function Footer() {
+  noStore();
   const [categories, site] = await Promise.all([getAllCategories(), getSiteSettingsData()]);
 
   return (
