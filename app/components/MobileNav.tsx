@@ -8,6 +8,7 @@ import {
   categoryHref,
   subcategoryHref,
 } from "../data/categories";
+import { FEATURED_BRANDS, brandHref } from "../data/brands";
 import { useNavCategories } from "../context/CategoriesContext";
 
 export default function MobileNav() {
@@ -71,6 +72,40 @@ export default function MobileNav() {
               >
                 Home
               </Link>
+
+              <div className="mt-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpanded(expanded === "brands" ? null : "brands")
+                  }
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-bold text-black ${
+                    pathname.startsWith("/brand/") ? "bg-neutral-100" : "hover:bg-neutral-50"
+                  }`}
+                >
+                  Brands
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      expanded === "brands" ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {expanded === "brands" && (
+                  <div className="mb-2 ml-2 border-l border-neutral-200 pl-2">
+                    {FEATURED_BRANDS.map((brand) => (
+                      <Link
+                        key={brand.slug}
+                        href={brandHref(brand.slug)}
+                        className={`block rounded-lg px-3 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 ${
+                          pathname === brandHref(brand.slug) ? "font-bold text-black" : ""
+                        }`}
+                      >
+                        {brand.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {navCategories.map((cat) => {
                 const isExpanded = expanded === cat.slug;

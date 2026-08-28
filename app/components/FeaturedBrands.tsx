@@ -40,9 +40,9 @@ export default function FeaturedBrands() {
   return (
     <section id="featured-brands" className="mx-auto mt-24 max-w-5xl">
       <div className="mb-10 text-center">
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-black">
+        {/* <span className="text-[10px] font-black uppercase tracking-[0.3em] text-black">
           Authorized Partners
-        </span>
+        </span> */}
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-black md:text-3xl">
           Featured Brands
         </h2>

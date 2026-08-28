@@ -14,7 +14,7 @@ export default function TrustBadges({ variant = "inline" }: TrustBadgesProps) {
         {TRUST_BADGES.map((badge, i) => {
           const Icon = ICONS[i];
           return (
-            <div key={badge.label} className="flex items-center gap-2 text-neutral-300">
+            <div key={badge.label} className="flex items-center gap-2 text-neutral-600">
               <Icon className="h-4 w-4 shrink-0" />
               <span className="text-xs font-semibold">{badge.label}</span>
             </div>

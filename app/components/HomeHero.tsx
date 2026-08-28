@@ -1,16 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
+  Bike,
   Coffee,
   CookingPot,
   Dumbbell,
+  HeartPulse,
   Refrigerator,
   Sparkles,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
-import HeroKitchenSymbols from "./HeroKitchenSymbols";
+import TrustBadges from "./TrustBadges";
 import { categoryHref } from "../data/categories";
 import { useNavCategories } from "../context/CategoriesContext";
 import { useStorefront } from "../context/StorefrontContext";
@@ -21,7 +25,9 @@ function HighlightedTagline({ tagline }: { tagline: string }) {
   return (
     <>
       {match[1]}
-      <span className="font-semibold text-rose-600">{match[2]}</span>
+      <span className="font-[family-name:var(--font-playfair)] font-normal italic text-rose-600">
+        {match[2]}
+      </span>
       {match[3]}
     </>
   );
@@ -40,48 +46,74 @@ export default function HomeHero() {
   const categories = useNavCategories();
 
   return (
-    <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white px-6 py-10 md:px-12 md:py-12">
-      <div className="relative flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
-        <div className="max-w-lg">
-          <h1 className="text-5xl font-bold tracking-tight text-neutral-950 md:text-6xl">
-            {siteSettings.name}
-          </h1>
-          <p className="mt-4 text-xl font-medium text-neutral-700 md:text-2xl">
-            <HighlightedTagline tagline={siteSettings.tagline} />
-          </p>
-          <Link
-            href="#featured-products"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-black"
-          >
-            Shop featured
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <HeroKitchenSymbols />
-      </div>
-
-      <nav className="mt-12" aria-label="Shop by category">
-        <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
-          {categories.map((category) => {
-            const Icon = CATEGORY_ICONS[category.slug] ?? Sparkles;
-            return (
+    <section className="relative mb-12 overflow-hidden rounded-[2rem] border border-neutral-200 bg-[var(--bg)] px-8 py-14 md:px-14 md:py-16">
+      <div className="relative flex flex-col gap-8 lg:flex-row lg:items-stretch lg:gap-6">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 items-center">
+            <div className="max-w-lg shrink-0">
+              <h1 className="text-4xl font-medium tracking-tight text-neutral-950 md:text-5xl">
+                <HighlightedTagline tagline={siteSettings.tagline} />
+              </h1>
               <Link
-                key={category.slug}
-                href={categoryHref(category.slug)}
-                className="group flex w-[4.75rem] flex-col items-center gap-2 sm:w-24"
+                href="#featured-products"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-black"
               >
-                <span className="flex h-16 w-16 items-center justify-center rounded-full border border-sky-100 bg-white shadow-sm transition group-hover:border-neutral-300 group-hover:shadow-md sm:h-[4.5rem] sm:w-[4.5rem]">
-                  <Icon className="h-7 w-7 text-neutral-800" strokeWidth={1.6} />
-                </span>
-                <span className="text-center text-[11px] font-semibold text-rose-600 sm:text-xs">
-                  {category.navLabel || category.label}
-                </span>
+                Shop featured
+                <ArrowRight className="h-4 w-4" />
               </Link>
-            );
-          })}
+              <TrustBadges variant="hero" />
+            </div>
+
+            <div aria-hidden className="pointer-events-none hidden flex-1 items-center justify-center lg:flex">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="translate-y-2 rotate-[-8deg] rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm">
+                  <Dumbbell className="h-8 w-8 text-neutral-800" strokeWidth={1.6} />
+                </div>
+                <div className="-translate-y-2 rotate-[7deg] rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm">
+                  <Bike className="h-8 w-8 text-neutral-800" strokeWidth={1.6} />
+                </div>
+                <div className="translate-x-1 rotate-[5deg] rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm">
+                  <HeartPulse className="h-8 w-8 text-neutral-800" strokeWidth={1.6} />
+                </div>
+                <div className="-translate-x-1 rotate-[-6deg] rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm">
+                  <Trophy className="h-8 w-8 text-neutral-800" strokeWidth={1.6} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <nav className="mt-8" aria-label="Shop by category">
+            <div className="flex justify-start gap-3">
+              {categories.map((category) => {
+                const Icon = CATEGORY_ICONS[category.slug] ?? Sparkles;
+                return (
+                  <Link
+                    key={category.slug}
+                    href={categoryHref(category.slug)}
+                    className="flex w-16 flex-col items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-2 py-2 sm:w-20"
+                  >
+                    <Icon className="h-5 w-5 text-neutral-800" strokeWidth={1.6} />
+                    <span className="text-center text-[10px] font-medium text-neutral-700">
+                      {category.navLabel || category.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
         </div>
-      </nav>
+
+        <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-2xl lg:h-auto lg:min-h-[280px] lg:w-[22rem] lg:self-stretch">
+          <Image
+            src="https://images.unsplash.com/photo-1556912173-46c336c7fd55?auto=format&fit=crop&w=1200&q=80"
+            alt="Modern kitchen with appliances"
+            fill
+            sizes="(max-width: 1024px) 100vw, 22rem"
+            className="object-cover"
+            priority
+          />
+        </div>
+      </div>
     </section>
   );
 }
