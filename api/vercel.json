@@ -1,14 +1,23 @@
 {
   "buildCommand": "prisma generate",
   "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/auth/admin/login", "destination": "/api/auth/admin/login" },
+    { "source": "/api/auth/admin/me", "destination": "/api/auth/admin/me" },
+    { "source": "/api/:path*", "destination": "/api" }
+  ],
   "functions": {
-    "api/[[...route]].ts": {
-      "includeFiles": "{prisma/**,node_modules/.prisma/**,node_modules/@prisma/client/**}"
+    "api/index.ts": {
+      "includeFiles": "prisma/**"
     },
     "api/health.ts": {
       "memory": 256
     },
     "api/auth/admin/login.ts": {
+      "memory": 256
+    },
+    "api/auth/admin/me.ts": {
       "memory": 256
     }
   }
