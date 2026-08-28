@@ -1,3 +1,3 @@
-# Standalone apps at the repo root only — do not ignore app/admin or app/api.
-/admin/
+# Do not upload the Hono app as extra shop functions (Hobby cap is 12).
+# Leave /admin un-ignored so the dark admin Vercel project can build.
 /api/
