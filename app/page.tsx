@@ -2,10 +2,9 @@
 
 import React from "react";
 import ProductCard from "./components/ProductCard";
-import TrustBadges from "./components/TrustBadges";
 import FeaturedBrands from "./components/FeaturedBrands";
 import FeaturedProductsGrid from "./components/FeaturedProductsGrid";
-import HeroKitchenSymbols from "./components/HeroKitchenSymbols";
+import HomeHero from "./components/HomeHero";
 import { useAddToCart } from "./hooks/useAddToCart";
 import { useInventory } from "./context/ProductsContext";
 import { useStorefront } from "./context/StorefrontContext";
@@ -13,41 +12,13 @@ import { useStorefront } from "./context/StorefrontContext";
 export default function Home() {
   const { handleAddToCart, addedIds } = useAddToCart();
   const inventory = useInventory();
-  const { featuredColumns, faqItems, siteSettings } = useStorefront();
+  const { featuredColumns, faqItems } = useStorefront();
   const [openFAQ, setOpenFAQ] = React.useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] font-sans relative">
       <main className="mx-auto max-w-7xl px-6 py-12">
-        <section className="relative mb-12 overflow-hidden rounded-3xl bg-neutral-900 px-8 py-14 text-white md:px-14 md:py-16">
-          <div className="relative flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
-              <span className="text-xs font-bold tracking-widest text-neutral-400 uppercase">
-                Original &amp; Reliable Home &amp; Gym Gear
-              </span>
-              <h1 className="mt-3 text-4xl font-light tracking-tight md:text-5xl">
-                Appliances you&apos;ll actually
-                <br />
-                <span className="font-medium text-neutral-100">enjoy using every day.</span>
-              </h1>
-              <p className="mt-4 text-sm text-neutral-400 leading-relaxed md:text-base">
-                We pick appliances and gym gear we&apos;d trust ourselves — solid brands,
-                fair prices, and delivery across {siteSettings.region}.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-4">
-                <a
-                  href="#featured-products"
-                  className="rounded-full bg-white px-6 py-3 text-sm font-medium text-black hover:bg-neutral-200 transition"
-                >
-                  Shop Featured Products
-                </a>
-              </div>
-              <TrustBadges variant="hero" />
-            </div>
-
-            <HeroKitchenSymbols />
-          </div>
-        </section>
+        <HomeHero />
 
         <section id="featured-products">
           <div className="mb-8 flex items-end justify-between">
