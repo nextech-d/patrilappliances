@@ -1,4 +1,12 @@
 {
   "buildCommand": "prisma generate",
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/[...route].ts": {
+      "includeFiles": "prisma/**"
+    },
+    "api/health.ts": {
+      "memory": 256
+    }
+  }
 }
