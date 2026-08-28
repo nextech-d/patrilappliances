@@ -1,25 +1,13 @@
+import { handle } from "hono/vercel";
+import { createApp } from "../src/app.js";
+
 export const runtime = "nodejs";
 
-export function GET() {
-  return Response.json({ ok: true, via: "gateway" });
-}
+const handler = handle(createApp("/api"));
 
-export function POST() {
-  return Response.json({ ok: true, via: "gateway" });
-}
-
-export function PUT() {
-  return Response.json({ ok: true, via: "gateway" });
-}
-
-export function PATCH() {
-  return Response.json({ ok: true, via: "gateway" });
-}
-
-export function DELETE() {
-  return Response.json({ ok: true, via: "gateway" });
-}
-
-export function OPTIONS() {
-  return new Response(null, { status: 204 });
-}
+export const GET = handler;
+export const POST = handler;
+export const PUT = handler;
+export const PATCH = handler;
+export const DELETE = handler;
+export const OPTIONS = handler;

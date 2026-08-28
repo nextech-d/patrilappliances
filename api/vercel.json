@@ -8,7 +8,8 @@
   ],
   "functions": {
     "api/gateway.ts": {
-      "memory": 256
+      "includeFiles": "prisma/**",
+      "memory": 1024
     },
     "api/health.ts": {
       "memory": 256
