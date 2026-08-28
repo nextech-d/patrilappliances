@@ -3,11 +3,11 @@
   "outputDirectory": "public",
   "routes": [
     { "handle": "filesystem" },
-    { "src": "^/api/_app$", "dest": "/api/_app" },
-    { "src": "^/api/(?!_app(?:/|\\?|$)|health$|auth/admin/login$|auth/admin/me$)(.*)$", "dest": "/api/_app" }
+    { "src": "^/api/gateway$", "dest": "/api/gateway" },
+    { "src": "^/api/(?!gateway(?:/|\\?|$)|health$|auth/admin/login$|auth/admin/me$)(.*)$", "dest": "/api/gateway" }
   ],
   "functions": {
-    "api/_app.ts": {
+    "api/gateway.ts": {
       "memory": 256
     },
     "api/health.ts": {
